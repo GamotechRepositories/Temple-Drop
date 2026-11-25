@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 
 const INTRO_SEEN_KEY = 'temple_drop_intro_seen';
 const FALLBACK_TIMEOUT_MS = 2950;
+const ASSET_WAIT_TIMEOUT_MS = 2500;
 
 const GOLD_PARTICLES = [
   { id: 1, top: '20%', delay: '460ms', dx: '-26px', dy: '-38px', size: 6 },
@@ -50,7 +51,7 @@ export function shouldShowTempleIntro(reducedMotionPref = false) {
   return true;
 }
 
-const SandstoneDoorHalf = ({ side }) => {
+const SandstoneDoorHalf = ({ side, animStyle }) => {
   const isLeft = side === 'left';
 
   return (
@@ -59,6 +60,7 @@ const SandstoneDoorHalf = ({ side }) => {
         isLeft ? 'left-0 animate-temple-door-left' : 'right-0 animate-temple-door-right'
       } w-1/2 overflow-hidden will-change-transform`}
       style={{
+        ...animStyle,
         background: isLeft
           ? 'radial-gradient(circle at 82% 50%, #9b6a3b 0%, #6f4824 38%, #472c15 74%, #25160a 100%)'
           : 'radial-gradient(circle at 18% 50%, #9b6a3b 0%, #6f4824 38%, #472c15 74%, #25160a 100%)',
@@ -95,6 +97,7 @@ const SandstoneDoorHalf = ({ side }) => {
 
 export const TempleIntro = ({ reducedMotion = false, onComplete }) => {
   const completedRef = useRef(false);
+  const [assetsReady, setAssetsReady] = useState(false);
 
   const completeIntro = useCallback(() => {
     if (completedRef.current) return;
@@ -104,6 +107,44 @@ export const TempleIntro = ({ reducedMotion = false, onComplete }) => {
       onComplete();
     }
   }, [onComplete]);
+
+  // Wait for door & scarab images on slow networks (capped at ASSET_WAIT_TIMEOUT_MS)
+  useEffect(() => {
+    let cancelled = false;
+    const urls = ['/images/temple-doors.jpg', '/images/temple-scarab.png'];
+    let loadedCount = 0;
+
+    const finishReady = () => {
+      if (!cancelled) setAssetsReady(true);
+    };
+
+    const maxWaitTimer = setTimeout(finishReady, ASSET_WAIT_TIMEOUT_MS);
+
+    const loaders = urls.map((src) => {
+      const img = new Image();
+      const markOne = () => {
+        loadedCount += 1;
+        if (loadedCount >= urls.length) {
+          clearTimeout(maxWaitTimer);
+          finishReady();
+        }
+      };
+      img.onload = markOne;
+      img.onerror = markOne;
+      img.src = src;
+      if (img.complete) markOne();
+      return img;
+    });
+
+    return () => {
+      cancelled = true;
+      clearTimeout(maxWaitTimer);
+      loaders.forEach((img) => {
+        img.onload = null;
+        img.onerror = null;
+      });
+    };
+  }, []);
 
   // Immediately exit if Reduced Motion preference or OS reduced motion is enabled
   useEffect(() => {
@@ -147,7 +188,7 @@ export const TempleIntro = ({ reducedMotion = false, onComplete }) => {
     };
   }, [reducedMotion, completeIntro]);
 
-  // Escape key & fallback timer
+  // Escape key & fallback timer (starts once assets are ready)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' || e.code === 'Escape') {
@@ -158,13 +199,15 @@ export const TempleIntro = ({ reducedMotion = false, onComplete }) => {
     };
 
     window.addEventListener('keydown', handleKeyDown, true);
-    const fallbackTimer = setTimeout(completeIntro, FALLBACK_TIMEOUT_MS);
+    const fallbackTimer = assetsReady
+      ? setTimeout(completeIntro, FALLBACK_TIMEOUT_MS)
+      : null;
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown, true);
-      clearTimeout(fallbackTimer);
+      if (fallbackTimer) clearTimeout(fallbackTimer);
     };
-  }, [completeIntro]);
+  }, [assetsReady, completeIntro]);
 
   const handleOverlayAnimationEnd = (e) => {
     if (e.target === e.currentTarget && e.animationName === 'templeOverlayFade') {
@@ -172,12 +215,15 @@ export const TempleIntro = ({ reducedMotion = false, onComplete }) => {
     }
   };
 
+  const animStyle = { animationPlayState: assetsReady ? 'running' : 'paused' };
+
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-label="Temple Drop opening intro"
       onAnimationEnd={handleOverlayAnimationEnd}
+      style={animStyle}
       className="fixed inset-0 z-[100] overflow-hidden select-none animate-temple-overlay-fade"
     >
       {/* Soft Gold Dust Particles Near Seam */}
@@ -187,6 +233,7 @@ export const TempleIntro = ({ reducedMotion = false, onComplete }) => {
             key={p.id}
             className="absolute left-1/2 rounded-full animate-temple-dust will-change-transform"
             style={{
+              ...animStyle,
               top: p.top,
               width: `${p.size}px`,
               height: `${p.size}px`,
@@ -201,11 +248,14 @@ export const TempleIntro = ({ reducedMotion = false, onComplete }) => {
       </div>
 
       {/* Left & Right Sandstone Temple Doors */}
-      <SandstoneDoorHalf side="left" />
-      <SandstoneDoorHalf side="right" />
+      <SandstoneDoorHalf side="left" animStyle={animStyle} />
+      <SandstoneDoorHalf side="right" animStyle={animStyle} />
 
       {/* Center Winged Turquoise Scarab */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 w-52 h-28 sm:w-72 sm:h-40 animate-temple-scarab will-change-transform">
+      <div
+        style={animStyle}
+        className="pointer-events-none absolute left-1/2 top-1/2 z-10 w-52 h-28 sm:w-72 sm:h-40 animate-temple-scarab will-change-transform"
+      >
         <img
           src="/images/temple-scarab.png"
           alt=""
@@ -215,7 +265,10 @@ export const TempleIntro = ({ reducedMotion = false, onComplete }) => {
       </div>
 
       {/* Real React TEMPLE DROP Title with Pyramid Crest */}
-      <div className="pointer-events-none absolute inset-x-0 top-[11%] sm:top-[10%] z-20 flex flex-col items-center text-center px-4 animate-temple-title will-change-transform">
+      <div
+        style={animStyle}
+        className="pointer-events-none absolute inset-x-0 top-[11%] sm:top-[10%] z-20 flex flex-col items-center text-center px-4 animate-temple-title will-change-transform"
+      >
         <div className="flex items-center space-x-2.5 mb-1">
           <span className="h-[2px] w-10 sm:w-16 bg-gradient-to-r from-transparent via-amber-400 to-amber-200" />
           <span className="w-3 h-3 rotate-45 bg-teal-400 border border-amber-100 shadow-[0_0_12px_rgba(45,212,191,0.9)]" />

@@ -9,9 +9,15 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: USE_IN_MEMORY_MONGO
+        value: "false"
       - key: COOKIE_SECURE
         value: "true"
       - key: SESSION_SECRET
         generateValue: true
+      - key: CSRF_SECRET
+        generateValue: true
       - key: MONGODB_URI
+        sync: false
+      - key: CORS_ORIGIN
         sync: false

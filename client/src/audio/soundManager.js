@@ -15,7 +15,7 @@ class SoundManager {
         this.bgAudio = new Audio('/audio/bg-music.mp3');
         this.bgAudio.loop = true;
         this.bgAudio.volume = 0.22;
-        this.bgAudio.preload = 'auto';
+        this.bgAudio.preload = 'metadata';
       } catch {}
     }
   }
