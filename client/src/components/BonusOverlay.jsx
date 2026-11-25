@@ -25,7 +25,7 @@ export const BonusOverlay = ({
                 Temple Bonus Round
               </h2>
               <span className="text-[10px] text-teal-400/80 font-medium">
-                Bet: {centsToCredits(activeBonus.betPerBallCents)} CR / ball (FREE)
+                Bet: {centsToCredits(activeBonus.betPerBallCents)} ₹ / ball (FREE)
               </span>
             </div>
           </div>
@@ -67,7 +67,7 @@ export const BonusOverlay = ({
               Bonus Win
             </span>
             <span className="text-base sm:text-lg font-black font-mono text-emerald-400">
-              +{centsToCredits(activeBonus.accumulatedWinCents)} CR
+              +{centsToCredits(activeBonus.accumulatedWinCents)} ₹
             </span>
           </div>
         </div>

@@ -15,7 +15,7 @@ export const HowToPlayModal = ({
     {
       num: 1,
       title: 'Choose your Bet & Ball Count',
-      desc: 'Select your bet per ball (0.50 to 250 CR) and number of balls per drop (1 to 10), then press DROP.',
+      desc: 'Select your bet per ball (0.50 to 50 ₹) and number of balls per drop (10 to 50), then press PLAY.',
       icon: <Sparkles className="w-5 h-5 text-amber-400" />,
     },
     {
@@ -32,8 +32,8 @@ export const HowToPlayModal = ({
     },
     {
       num: 4,
-      title: 'Energy Bumpers',
-      desc: 'Hit the three golden medallions on the board to gain 10 energy each. 100 energy unlocks the Bonus Round!',
+      title: 'Free Wheel Spin & Bonus',
+      desc: 'Spin the wheel when you reach 10 spin points! Land on BONUS in the wheel spin to unlock the Temple Bonus Round!',
       icon: <Flame className="w-5 h-5 text-teal-400" />,
     },
     {
@@ -45,7 +45,7 @@ export const HowToPlayModal = ({
     {
       num: 6,
       title: 'Demo Credits & Payout Cap',
-      desc: 'All credits are demo tokens. Combined payouts per paid round are capped at 5,000 CR. Free refills are available below 0.50 CR!',
+      desc: 'All credits are demo tokens. Combined payouts per paid round are capped at 5,000 ₹. Free refills are available below 0.50 ₹!',
       icon: <ShieldAlert className="w-5 h-5 text-rose-400" />,
     },
   ];

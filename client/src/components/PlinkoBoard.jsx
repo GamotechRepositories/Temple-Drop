@@ -94,10 +94,21 @@ export const PlinkoBoard = ({
     }
 
     const now = performance.now();
-    // Tuning values: 100-150ms stagger, 2-3s travel per ball
     const isFast = fastModeRef.current;
-    const staggerInterval = isFast ? 80 : 130;
-    const dropDuration = isFast ? 1300 : 2400;
+    const count = ballsToAnimate.length;
+    // Adapt stagger so 10 balls feel dramatic, and 20-50 balls cascade smoothly without lagging
+    const staggerInterval = isFast
+      ? count > 25
+        ? 35
+        : count > 10
+        ? 55
+        : 75
+      : count > 25
+      ? 50
+      : count > 10
+      ? 85
+      : 120;
+    const dropDuration = isFast ? 1200 : count > 25 ? 1800 : 2200;
 
     const newBalls = ballsToAnimate.map((b, idx) => {
       const slot = GAME_CONFIG.SLOTS[b.slotIndex];
@@ -420,12 +431,9 @@ export const PlinkoBoard = ({
       particlesRef.current = particlesRef.current.filter((pt) => pt.alpha > 0);
 
       // Check if entire drop round is settled
-      if (
-        activeBallsRef.current.length > 0 &&
-        allSettled &&
-        particlesRef.current.length === 0
-      ) {
+      if (activeBallsRef.current.length > 0 && allSettled) {
         activeBallsRef.current = [];
+        particlesRef.current = [];
         if (onAnimationCompleteRef.current) {
           onAnimationCompleteRef.current();
         }

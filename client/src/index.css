@@ -66,41 +66,7 @@
   animation: spin-slow 20s linear infinite;
 }
 
-/* Atmospheric Background Flying Animations */
-@keyframes flyAcross1 {
-  0% {
-    transform: translate3d(-12vw, 4vh, 0) scale(0.9);
-    opacity: 0;
-  }
-  6% {
-    opacity: 0.95;
-  }
-  92% {
-    opacity: 0.95;
-  }
-  100% {
-    transform: translate3d(112vw, 8vh, 0) scale(0.9);
-    opacity: 0;
-  }
-}
-
-@keyframes flyAcross3 {
-  0% {
-    transform: translate3d(112vw, 9vh, 0) scale(0.8) scaleX(-1);
-    opacity: 0;
-  }
-  6% {
-    opacity: 0.9;
-  }
-  92% {
-    opacity: 0.9;
-  }
-  100% {
-    transform: translate3d(-12vw, 5vh, 0) scale(0.8) scaleX(-1);
-    opacity: 0;
-  }
-}
-
+/* Atmospheric Background Celestial & Particle Animations */
 @keyframes skyTwinkle {
   0%, 100% {
     transform: scale(0.7) translate3d(0, 0, 0);
@@ -109,15 +75,6 @@
   50% {
     transform: scale(1.3) translate3d(4px, -6px, 0);
     opacity: 0.95;
-  }
-}
-
-@keyframes wingFlap {
-  0%, 100% {
-    transform: scaleY(1);
-  }
-  50% {
-    transform: scaleY(-0.65);
   }
 }
 

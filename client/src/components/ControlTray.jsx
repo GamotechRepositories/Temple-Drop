@@ -84,7 +84,7 @@ export const ControlTray = ({
               Total Bet
             </span>
             <span className="text-xs sm:text-base font-bold font-mono text-slate-100">
-              {centsToCredits(totalBetCents)} CR
+              {centsToCredits(totalBetCents)} ₹
             </span>
           </div>
 
@@ -93,7 +93,7 @@ export const ControlTray = ({
               Win
             </span>
             <span className="text-xs sm:text-base font-bold font-mono text-emerald-400">
-              {centsToCredits(lastWinCents)} CR
+              {centsToCredits(lastWinCents)} ₹
             </span>
           </div>
         </div>

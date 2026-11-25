@@ -11,6 +11,7 @@ import { GameRulesModal } from './components/GameRulesModal.jsx';
 import { HistoryModal } from './components/HistoryModal.jsx';
 import { SettingsModal } from './components/SettingsModal.jsx';
 import { AuthModal } from './components/AuthModal.jsx';
+import { BetResultModal } from './components/BetResultModal.jsx';
 
 export const App = () => {
   const queryClient = useQueryClient();
@@ -49,6 +50,8 @@ export const App = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showWheel, setShowWheel] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [showBetResult, setShowBetResult] = useState(false);
+  const [latestRoundResult, setLatestRoundResult] = useState(null);
 
   const [preferences, setPreferences] = useState({
     soundEnabled: true,
@@ -105,9 +108,24 @@ export const App = () => {
     } catch {}
   };
 
-  // Regular Drop
+  // Regular / Active Drop Handler
   const handleDrop = async () => {
-    if (isDropping || pendingFeatures.length > 0 || activeBonus) return;
+    if (isDropping) return;
+
+    // If active bonus is in progress, route to bonus drop
+    if (activeBonus) {
+      return handleBonusDrop();
+    }
+
+    // If pending features exist, trigger wheel or bonus
+    if (pendingFeatures && pendingFeatures.length > 0) {
+      const hasSpins = pendingFeatures.some((f) => f.type === 'WHEEL_SPIN');
+      if (hasSpins) {
+        setShowWheel(true);
+        return;
+      }
+      return handleBonusDrop();
+    }
 
     const totalBetCents = betPerBallCents * ballCount;
     if (wallet.balanceCents < totalBetCents) {
@@ -194,15 +212,22 @@ export const App = () => {
       // Check for pending wheel spins
       if (data.pendingFeatures && data.pendingFeatures.length > 0) {
         const hasSpins = data.pendingFeatures.some((f) => f.type === 'WHEEL_SPIN');
-        if (hasSpins && !data.activeBonus) {
+        if (hasSpins && !data.activeBonus && autoDropCount === null) {
           setShowWheel(true);
         }
+      }
+
+      // Record latest round and show detailed Bet Result Popup
+      setLatestRoundResult(data);
+      if (autoDropCount === null || autoDropCount <= 1) {
+        setShowBetResult(true);
       }
 
       // Handle auto drop loop
       if (autoDropCount !== null) {
         if (data.pendingFeatures && data.pendingFeatures.length > 0) {
           setAutoDropCount(null);
+          setShowBetResult(true);
         } else if (autoDropCount > 1) {
           setAutoDropCount((prev) => (prev ? prev - 1 : null));
           setTimeout(() => {
@@ -232,6 +257,17 @@ export const App = () => {
     return res;
   };
 
+  const handleCloseBetResult = () => {
+    soundManager.playButtonClick();
+    setShowBetResult(false);
+    if (latestRoundResult?.pendingFeatures && latestRoundResult.pendingFeatures.length > 0) {
+      const hasSpins = latestRoundResult.pendingFeatures.some((f) => f.type === 'WHEEL_SPIN');
+      if (hasSpins && !latestRoundResult.activeBonus) {
+        setShowWheel(true);
+      }
+    }
+  };
+
   const handleRefill = async () => {
     try {
       const res = await api.refillWallet();
@@ -246,13 +282,20 @@ export const App = () => {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.code === 'Space') {
+        if (showBetResult) {
+          e.preventDefault();
+          handleCloseBetResult();
+          return;
+        }
+
         const isAnyModalOpen =
           showHowToPlay ||
           showGameRules ||
           showHistory ||
           showSettings ||
           showWheel ||
-          showAuth;
+          showAuth ||
+          showBetResult;
 
         if (!isAnyModalOpen && !isDropping) {
           e.preventDefault();
@@ -263,6 +306,9 @@ export const App = () => {
           }
         }
       } else if (e.code === 'Escape') {
+        if (showBetResult) {
+          handleCloseBetResult();
+        }
         setShowHowToPlay(false);
         setShowGameRules(false);
         setShowHistory(false);
@@ -280,10 +326,12 @@ export const App = () => {
     showSettings,
     showWheel,
     showAuth,
+    showBetResult,
     isDropping,
     activeBonus,
     handleDrop,
     handleBonusDrop,
+    handleCloseBetResult,
   ]);
 
   const canRefill = wallet.balanceCents < GAME_CONFIG.MIN_BET_CENTS && pendingFeatures.length === 0 && !activeBonus;
@@ -398,6 +446,12 @@ export const App = () => {
           setWallet(data.wallet);
           queryClient.invalidateQueries({ queryKey: ['gameState'] });
         }}
+      />
+
+      <BetResultModal
+        isOpen={showBetResult}
+        onClose={handleCloseBetResult}
+        resultData={latestRoundResult}
       />
     </div>
   );

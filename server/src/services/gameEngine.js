@@ -16,8 +16,9 @@ export class GameEngine {
     let currentPeg = { row: 0, col: 0 };
     visitedPegs.push({ ...currentPeg });
 
-    if (this.isBumperPeg(currentPeg)) {
-      bumperHits.push({ ...currentPeg });
+    const startBumper = this.getBumperAt(currentPeg);
+    if (startBumper) {
+      bumperHits.push({ id: startBumper.id, row: startBumper.row, col: startBumper.col });
     }
 
     for (let r = 0; r < GAME_CONFIG.STEPS_COUNT; r++) {
@@ -31,8 +32,9 @@ export class GameEngine {
 
       if (currentPeg.row < GAME_CONFIG.ROWS) {
         visitedPegs.push({ ...currentPeg });
-        if (this.isBumperPeg(currentPeg)) {
-          bumperHits.push({ ...currentPeg });
+        const hitBumper = this.getBumperAt(currentPeg);
+        if (hitBumper) {
+          bumperHits.push({ id: hitBumper.id, row: hitBumper.row, col: hitBumper.col });
         }
       }
     }
@@ -47,10 +49,14 @@ export class GameEngine {
     };
   }
 
-  static isBumperPeg(peg) {
-    return GAME_CONFIG.BUMPER_PEGS.some(
+  static getBumperAt(peg) {
+    return GAME_CONFIG.BUMPER_PEGS.find(
       (b) => b.row === peg.row && b.col === peg.col
-    );
+    ) || null;
+  }
+
+  static isBumperPeg(peg) {
+    return Boolean(this.getBumperAt(peg));
   }
 
   static processDrop(input) {

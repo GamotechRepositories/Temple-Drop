@@ -1,15 +1,15 @@
 export const GAME_CONFIG = {
   TITLE: 'Temple Drop',
-  CURRENCY_SYMBOL: 'CR',
+  CURRENCY_SYMBOL: '₹',
   ROWS: 14,
   SLOTS_COUNT: 15,
   STEPS_COUNT: 14,
 
   // Bumper peg locations (row index 0-12, col index 0-row)
   BUMPER_PEGS: [
-    { row: 4, col: 1 },
-    { row: 7, col: 5 },
-    { row: 9, col: 4 },
+    { id: 'bumper_4_1', row: 4, col: 1 },
+    { id: 'bumper_7_5', row: 7, col: 5 },
+    { id: 'bumper_9_4', row: 9, col: 4 },
   ],
 
   // Credit limits (in integer cents / hundredths of demo credits)
@@ -18,8 +18,8 @@ export const GAME_CONFIG = {
   MAX_TOTAL_BET_CENTS: 250000,    // 2,500.00 credits
   PAYOUT_CAP_CENTS: 500000,       // 5,000.00 credits per paid round
 
-  // Allowed betting choices
-  BET_PER_BALL_OPTIONS_CENTS: [50, 100, 200, 500, 1000, 2500, 5000, 10000, 25000],
+  // Allowed betting choices (min 0.50, max 50.00 credits per ball; min 10, max 50 balls per drop)
+  BET_PER_BALL_OPTIONS_CENTS: [50, 100, 200, 500, 1000, 2500, 5000],
   BALLS_PER_DROP_OPTIONS: [10, 20, 25, 30, 40, 50],
   DEFAULT_BET_PER_BALL_CENTS: 50, // 0.50 credits
   DEFAULT_BALLS_PER_DROP: 10,

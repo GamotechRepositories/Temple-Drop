@@ -35,6 +35,7 @@ router.get('/config', (req, res) => {
 router.get('/state', requireAuth, async (req, res, next) => {
   try {
     const user = req.user;
+    await FeatureQueueService.ensureActiveFeature(user._id);
     const wallet = await WalletService.getWallet(user._id);
     const gameState = await FeatureQueueService.getGameState(user._id);
     const pendingFeatures = await FeatureQueueService.getPendingFeatures(user._id);

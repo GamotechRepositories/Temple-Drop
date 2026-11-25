@@ -178,7 +178,7 @@ export const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
           className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 border border-slate-700 disabled:opacity-50"
         >
           <Sparkles className="w-4 h-4 text-amber-400" />
-          <span>Play as Demo Guest (10,000 CR)</span>
+          <span>Play as Demo Guest (10,000 ₹)</span>
         </button>
       </div>
     </div>

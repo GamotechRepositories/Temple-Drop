@@ -56,28 +56,14 @@ export class FeatureQueueService {
 
     const energyGained = bumperHitsGained * GAME_CONFIG.ENERGY_PER_BUMPER_HIT;
     const totalEnergy = state.energyPoints + energyGained;
-    const earnedBonuses = Math.floor(totalEnergy / GAME_CONFIG.ENERGY_THRESHOLD_FOR_BONUS);
-    const remainingEnergy = totalEnergy % GAME_CONFIG.ENERGY_THRESHOLD_FOR_BONUS;
 
     state.spinPoints = remainingSpin;
-    state.energyPoints = remainingEnergy;
+    state.energyPoints = totalEnergy % GAME_CONFIG.ENERGY_THRESHOLD_FOR_BONUS;
     await state.save({ session });
 
     let currentOrder = await this.getNextOrderNumber(userId, session);
 
-    // Queue bonus BEFORE wheel spins
-    for (let b = 0; b < earnedBonuses; b++) {
-      const bonusFeature = new PendingFeature({
-        userId,
-        roundId,
-        type: 'BONUS',
-        status: 'PENDING',
-        betPerBallCents,
-        order: currentOrder++,
-      });
-      await bonusFeature.save({ session });
-    }
-
+    // Queue wheel spins only. Bonus is ONLY granted when the Wheel Spin lands on BONUS.
     for (let s = 0; s < earnedSpins; s++) {
       const spinFeature = new PendingFeature({
         userId,
@@ -95,7 +81,7 @@ export class FeatureQueueService {
     return {
       spinPoints: state.spinPoints,
       energyPoints: state.energyPoints,
-      queuedBonusesCount: earnedBonuses,
+      queuedBonusesCount: 0,
       queuedSpinsCount: earnedSpins,
     };
   }
@@ -113,9 +99,11 @@ export class FeatureQueueService {
 
     const headFeature = pendingList[0];
 
-    if (headFeature.type === 'BONUS' && headFeature.status === 'PENDING') {
-      headFeature.status = 'ACTIVE';
-      await headFeature.save({ session });
+    if (headFeature.type === 'BONUS' && (headFeature.status === 'PENDING' || headFeature.status === 'ACTIVE')) {
+      if (headFeature.status !== 'ACTIVE') {
+        headFeature.status = 'ACTIVE';
+        await headFeature.save({ session });
+      }
 
       activeBonus = new ActiveBonus({
         userId,

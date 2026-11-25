@@ -98,10 +98,10 @@ export const HistoryModal = ({ isOpen, onClose }) => {
                       </span>
                       <div className="flex items-center space-x-2 mt-0.5">
                         <span className="text-xs font-bold text-slate-200">
-                          {item.ballCount} balls @ {centsToCredits(item.betPerBallCents)} CR
+                          {item.ballCount} balls @ {centsToCredits(item.betPerBallCents)} ₹
                         </span>
                         <span className="text-[10px] text-slate-400">
-                          (Bet: {centsToCredits(item.totalBetCents)} CR)
+                          (Bet: {centsToCredits(item.totalBetCents)} ₹)
                         </span>
                       </div>
                     </div>
@@ -109,7 +109,7 @@ export const HistoryModal = ({ isOpen, onClose }) => {
                     <div className="flex items-center space-x-3">
                       <div className="flex flex-col items-end">
                         <span className="text-xs font-mono font-bold text-slate-100">
-                          Win: +{centsToCredits(item.totalGrossPayoutCents)} CR
+                          Win: +{centsToCredits(item.totalGrossPayoutCents)} ₹
                         </span>
                         <span
                           className={`text-xs font-mono font-bold ${
@@ -117,7 +117,7 @@ export const HistoryModal = ({ isOpen, onClose }) => {
                           }`}
                         >
                           Net: {isNetPositive ? '+' : ''}
-                          {centsToCredits(item.netChangeCents)} CR
+                          {centsToCredits(item.netChangeCents)} ₹
                         </span>
                       </div>
                       {isExpanded ? (
@@ -134,19 +134,19 @@ export const HistoryModal = ({ isOpen, onClose }) => {
                         <div className="p-2 bg-slate-900 rounded-lg">
                           <span className="text-[10px] text-slate-400 uppercase">Board Payout</span>
                           <div className="font-bold font-mono text-slate-200">
-                            {centsToCredits(item.boardPayoutCents)} CR
+                            {centsToCredits(item.boardPayoutCents)} ₹
                           </div>
                         </div>
                         <div className="p-2 bg-slate-900 rounded-lg">
                           <span className="text-[10px] text-slate-400 uppercase">Wheel Payout</span>
                           <div className="font-bold font-mono text-slate-200">
-                            {centsToCredits(item.wheelPayoutCents)} CR
+                            {centsToCredits(item.wheelPayoutCents)} ₹
                           </div>
                         </div>
                         <div className="p-2 bg-slate-900 rounded-lg">
                           <span className="text-[10px] text-slate-400 uppercase">Bonus Payout</span>
                           <div className="font-bold font-mono text-slate-200">
-                            {centsToCredits(item.bonusPayoutCents)} CR
+                            {centsToCredits(item.bonusPayoutCents)} ₹
                           </div>
                         </div>
                       </div>

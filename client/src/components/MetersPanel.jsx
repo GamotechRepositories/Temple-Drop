@@ -87,7 +87,7 @@ export const MetersPanel = ({
           </span>
           {payoutCapReached && (
             <span className="text-[10px] bg-rose-900/80 text-rose-300 px-1.5 py-0.5 rounded font-bold border border-rose-600">
-              CAP (5,000 CR)
+              CAP (5,000 ₹)
             </span>
           )}
         </div>
@@ -95,7 +95,7 @@ export const MetersPanel = ({
           <span className="text-2xl font-black font-mono text-emerald-400">
             {centsToCredits(lastWinCents)}
           </span>
-          <span className="text-xs text-slate-400">CR</span>
+          <span className="text-xs text-slate-400">₹</span>
         </div>
       </div>
     </aside>

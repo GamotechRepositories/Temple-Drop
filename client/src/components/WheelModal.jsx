@@ -242,14 +242,14 @@ export const WheelModal = ({
               <div className="flex flex-col items-center">
                 <span className="text-xs text-slate-400 uppercase font-semibold">Won Multiplier</span>
                 <span className="text-2xl font-black font-mono text-emerald-400">
-                  +{centsToCredits(spinResult.grossPayoutCents)} CR
+                  +{centsToCredits(spinResult.grossPayoutCents)} ₹
                 </span>
                 <span className="text-xs text-amber-300 font-bold">
                   ({spinResult.outcome.label} on bet per ball)
                 </span>
                 {spinResult.payoutCapReached && (
                   <span className="text-[10px] text-rose-400 mt-1 font-bold">
-                    Max Round Cap (5,000 CR) Reached!
+                    Max Round Cap (5,000 ₹) Reached!
                   </span>
                 )}
               </div>

@@ -5,6 +5,7 @@ class SoundManager {
     this.musicEnabled = false;
     this.isMusicPlaying = false;
     this.bgAudio = null;
+    this.lastPegHitTime = 0;
   }
 
   initBgAudio() {
@@ -88,6 +89,10 @@ class SoundManager {
     if (!this.soundEnabled) return;
     this.initContext();
     if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    if (now - this.lastPegHitTime < 0.025) return; // Prevent audio distortion when many balls cascade
+    this.lastPegHitTime = now;
 
     try {
       const osc = this.ctx.createOscillator();

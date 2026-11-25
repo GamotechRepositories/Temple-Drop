@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Square, ChevronUp, ChevronDown, RefreshCw, Loader2 } from 'lucide-react';
+import { Play, Square, ChevronUp, ChevronDown, RefreshCw, Loader2, Sparkles } from 'lucide-react';
 import { GAME_CONFIG, centsToCredits } from '@temple-drop/shared';
 import { soundManager } from '../audio/soundManager.js';
 import { SpinMeter } from './SpinMeter.jsx';
@@ -65,6 +65,27 @@ export const GameControls = ({
   const totalBetCents = betPerBallCents * ballCount;
   const isAutoPlaying = autoDropCount !== null;
   const isActionDisabled = isDropping;
+
+  // Adaptive primary button state: Bonus Drop, Wheel Spin, or Standard Play
+  let handlePrimaryAction = onDrop;
+  let primaryLabel = 'PLAY';
+  let primaryBg = 'linear-gradient(180deg, #22c55e 0%, #15803d 100%)';
+  let primaryBorder = '1.5px solid #34d399';
+  let primaryShadow = 'inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 12px rgba(21, 128, 61, 0.5)';
+
+  if (hasActiveBonus || (hasPendingFeatures && pendingSpinsCount === 0)) {
+    handlePrimaryAction = onBonusDrop || onDrop;
+    primaryLabel = activeBonus?.remainingBalls !== undefined ? `BONUS (${activeBonus.remainingBalls})` : 'BONUS DROP';
+    primaryBg = 'linear-gradient(180deg, #9333ea 0%, #6b21a8 100%)';
+    primaryBorder = '1.5px solid #c084fc';
+    primaryShadow = 'inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px rgba(147, 51, 234, 0.6)';
+  } else if (hasPendingFeatures && pendingSpinsCount > 0) {
+    handlePrimaryAction = onOpenWheel;
+    primaryLabel = `SPIN WHEEL (${pendingSpinsCount})`;
+    primaryBg = 'linear-gradient(180deg, #0284c7 0%, #0369a1 100%)';
+    primaryBorder = '1.5px solid #38bdf8';
+    primaryShadow = 'inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px rgba(2, 132, 199, 0.6)';
+  }
 
   return (
     <div className="w-full max-w-[940px] mx-auto select-none px-2 z-20">
@@ -236,11 +257,10 @@ export const GameControls = ({
                     setShowAutoDropdown(!showAutoDropdown);
                   }
                 }}
-                className={`w-full h-[60px] xs:h-[64px] tall-mobile-item rounded-[14px] flex items-center justify-center transition-all ${
-                  isAutoPlaying
-                    ? 'bg-rose-950/80 border-2 border-rose-500 text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.4)] animate-pulse'
-                    : 'bg-[#182338] border border-slate-600/70 text-slate-200 hover:text-white hover:border-slate-400'
-                }`}
+                className={`w-full h-[60px] xs:h-[64px] tall-mobile-item rounded-[14px] flex items-center justify-center transition-all ${isAutoPlaying
+                  ? 'bg-rose-950/80 border-2 border-rose-500 text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.4)] animate-pulse'
+                  : 'bg-[#182338] border border-slate-600/70 text-slate-200 hover:text-white hover:border-slate-400'
+                  }`}
                 style={{
                   boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.4)',
                 }}
@@ -289,20 +309,20 @@ export const GameControls = ({
               )}
             </div>
 
-            {/* MAIN PLAY BUTTON (Order 1 on tall screens) */}
+            {/* MAIN PLAY / BONUS / SPIN BUTTON (Order 1 on tall screens) */}
             <button
               onClick={() => {
                 soundManager.playButtonClick();
-                onDrop();
+                handlePrimaryAction();
               }}
               disabled={isActionDisabled}
               className="tall-mobile-order-1 w-full h-[60px] xs:h-[64px] tall-mobile-item rounded-[14px] flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-110 active:scale-95"
               style={{
-                background: 'linear-gradient(180deg, #22c55e 0%, #15803d 100%)',
-                border: '1.5px solid #34d399',
-                boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 12px rgba(21, 128, 61, 0.5)',
+                background: primaryBg,
+                border: primaryBorder,
+                boxShadow: primaryShadow,
               }}
-              aria-label="Play drop"
+              aria-label={primaryLabel}
             >
               {isDropping ? (
                 <div className="flex items-center space-x-2">
@@ -313,9 +333,13 @@ export const GameControls = ({
                 </div>
               ) : (
                 <div className="flex items-center space-x-2">
-                  <Play className="w-7 h-7 xs:w-8 xs:h-8 text-white fill-white ml-0.5" />
-                  <span className="text-white font-black text-base tracking-wider hidden tall-mobile-inline">
-                    PLAY
+                  {hasActiveBonus ? (
+                    <Sparkles className="w-6 h-6 xs:w-7 xs:h-7 text-white fill-white ml-0.5 animate-pulse" />
+                  ) : (
+                    <Play className="w-7 h-7 xs:w-8 xs:h-8 text-white fill-white ml-0.5" />
+                  )}
+                  <span className="text-white font-black text-base tracking-wider">
+                    {primaryLabel}
                   </span>
                 </div>
               )}
@@ -493,25 +517,34 @@ export const GameControls = ({
               )}
             </div>
 
-            {/* MAIN PLAY BUTTON */}
+            {/* MAIN PLAY / BONUS / SPIN BUTTON */}
             <button
               onClick={() => {
                 soundManager.playButtonClick();
-                onDrop();
+                handlePrimaryAction();
               }}
               disabled={isActionDisabled}
-              className="w-[115px] h-[58px] rounded-[14px] flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-110 active:scale-95"
+              className="min-w-[115px] px-4 h-[58px] rounded-[14px] flex items-center justify-center space-x-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-110 active:scale-95"
               style={{
-                background: 'linear-gradient(180deg, #22c55e 0%, #15803d 100%)',
-                border: '1.5px solid #34d399',
-                boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 12px rgba(21, 128, 61, 0.5)',
+                background: primaryBg,
+                border: primaryBorder,
+                boxShadow: primaryShadow,
               }}
-              aria-label="Play drop"
+              aria-label={primaryLabel}
             >
               {isDropping ? (
                 <Loader2 className="w-6 h-6 text-white animate-spin" />
               ) : (
-                <Play className="w-7 h-7 text-white fill-white ml-0.5" />
+                <>
+                  {hasActiveBonus ? (
+                    <Sparkles className="w-6 h-6 text-white fill-white ml-0.5 animate-pulse" />
+                  ) : (
+                    <Play className="w-7 h-7 text-white fill-white ml-0.5" />
+                  )}
+                  <span className="text-white font-black text-sm tracking-wider">
+                    {primaryLabel}
+                  </span>
+                </>
               )}
             </button>
           </div>

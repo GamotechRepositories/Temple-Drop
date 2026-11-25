@@ -77,7 +77,7 @@ export const Header = ({
           <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-4.5 sm:h-4.5 inline-block drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] shrink-0">
             <circle cx="12" cy="12" r="10" stroke="#f59e0b" strokeWidth="2" fill="#fbbf24" />
             <circle cx="12" cy="12" r="7.5" stroke="#b45309" strokeWidth="1.2" fill="#f59e0b" />
-            <text x="12" y="15.5" textAnchor="middle" fontSize="10" fontWeight="900" fill="#451a03" fontFamily="sans-serif">CR</text>
+            <text x="12" y="16.5" textAnchor="middle" fontSize="12" fontWeight="900" fill="#451a03" fontFamily="sans-serif">₹</text>
           </svg>
 
           {canRefill && (

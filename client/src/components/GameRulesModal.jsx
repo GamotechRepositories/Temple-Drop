@@ -35,19 +35,19 @@ export const GameRulesModal = ({ isOpen, onClose }) => {
             <div className="p-3 bg-slate-950/80 rounded-2xl border border-slate-800 flex flex-col text-center">
               <span className="text-[10px] text-slate-400 font-semibold uppercase">Min Bet</span>
               <span className="text-sm sm:text-base font-bold font-mono text-slate-100 mt-1">
-                {centsToCredits(GAME_CONFIG.MIN_BET_CENTS)} CR
+                {centsToCredits(GAME_CONFIG.MIN_BET_CENTS)} ₹
               </span>
             </div>
             <div className="p-3 bg-slate-950/80 rounded-2xl border border-slate-800 flex flex-col text-center">
               <span className="text-[10px] text-slate-400 font-semibold uppercase">Max Bet</span>
               <span className="text-sm sm:text-base font-bold font-mono text-slate-100 mt-1">
-                {centsToCredits(GAME_CONFIG.MAX_TOTAL_BET_CENTS)} CR
+                {centsToCredits(GAME_CONFIG.MAX_TOTAL_BET_CENTS)} ₹
               </span>
             </div>
             <div className="p-3 bg-slate-950/80 rounded-2xl border border-slate-800 flex flex-col text-center">
               <span className="text-[10px] text-slate-400 font-semibold uppercase">Max Win</span>
               <span className="text-sm sm:text-base font-bold font-mono text-emerald-400 mt-1">
-                {centsToCredits(GAME_CONFIG.PAYOUT_CAP_CENTS)} CR
+                {centsToCredits(GAME_CONFIG.PAYOUT_CAP_CENTS)} ₹
               </span>
             </div>
           </div>
@@ -110,7 +110,7 @@ export const GameRulesModal = ({ isOpen, onClose }) => {
             </p>
             <p className="leading-relaxed text-slate-400">
               • Combined payouts from the originating drop, wheel spins, and bonus rounds are capped
-              at 5,000 CR.
+              at 5,000 ₹.
             </p>
           </div>
         </div>
