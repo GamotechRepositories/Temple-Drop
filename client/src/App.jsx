@@ -290,7 +290,7 @@ export const App = () => {
   const currentAvatar = GAME_CONFIG.AVATARS.find((a) => a.id === preferences.avatarId)?.icon || '🤠';
 
   return (
-    <div className="relative w-full h-screen max-h-screen bg-[#050811] text-slate-100 flex flex-col justify-between overflow-hidden font-sans select-none">
+    <div className="relative w-full h-screen h-[100dvh] max-h-[100dvh] bg-[#050811] text-slate-100 flex flex-col justify-between overflow-hidden font-sans select-none">
       {/* 1. TOP HEADER */}
       <Header
         user={user}

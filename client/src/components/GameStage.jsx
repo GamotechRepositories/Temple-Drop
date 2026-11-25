@@ -55,7 +55,7 @@ export const GameStage = ({
     : Math.min(100, (energyPoints / 100) * 100);
 
   return (
-    <div className="relative w-full flex-1 flex flex-col items-center justify-start sm:justify-between pt-1 sm:pt-1 sm:pb-1.5 overflow-hidden py-0 select-none">
+    <div className="relative w-full flex-1 flex flex-col items-center justify-center sm:justify-between pt-3.5 sm:pt-1 pb-1 sm:pb-1.5 overflow-hidden py-0 select-none">
       {/* ========================================================
           1. EGYPTIAN DESERT NIGHT WEBP BACKGROUND
       ======================================================== */}
@@ -79,7 +79,7 @@ export const GameStage = ({
       {/* ========================================================
           2. STEPPED SANDSTONE TEMPLE SHRINE (Using WebP Frame)
       ======================================================== */}
-      <div className="relative z-10 w-[98%] max-w-[395px] xs:max-w-[430px] sm:max-w-[min(550px,calc((100vh-170px)*1.08))] origin-top scale-[1.04] sm:scale-100 flex flex-col items-center select-none">
+      <div className="relative z-10 w-[99%] max-w-[min(412px,calc((100dvh-265px)*0.98))] tall-mobile-temple sm:max-w-[min(550px,calc((100vh-170px)*1.08))] flex flex-col items-center select-none">
         {/* Frame Outer Wrapper matching aspect ratio (1024 / 595 = 1.72) */}
         <div className="relative w-full aspect-[1024/595] flex flex-col items-center justify-between">
           {/* Temple Frame WebP Image Overlaid */}
@@ -123,7 +123,7 @@ export const GameStage = ({
       {/* ========================================================
           3 & 4. BOTTOM METERS & CONTROL TRAY
       ======================================================== */}
-      <div className="relative z-20 w-full flex flex-col items-center mt-auto sm:mt-0 mb-0 sm:mb-1">
+      <div className="relative z-20 w-full flex flex-col items-center mt-auto sm:mt-0 mb-1 sm:mb-1">
         {/* Desktop Feature Meters */}
         <div className="hidden sm:flex relative z-20 w-full max-w-[940px] px-2 sm:px-3 items-end justify-between -mt-2 sm:-mt-8 mb-1">
           {/* FAST GAME Pill Switch above left edge of tray */}
@@ -143,14 +143,12 @@ export const GameStage = ({
               />
               {/* Custom slider pill */}
               <div
-                className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${
-                  fastMode ? 'bg-amber-500' : 'bg-slate-700'
-                }`}
+                className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out ${fastMode ? 'bg-amber-500' : 'bg-slate-700'
+                  }`}
               >
                 <div
-                  className={`w-4 h-4 rounded-full bg-white shadow-md transform transition-transform duration-200 ease-in-out ${
-                    fastMode ? 'translate-x-4' : 'translate-x-0'
-                  }`}
+                  className={`w-4 h-4 rounded-full bg-white shadow-md transform transition-transform duration-200 ease-in-out ${fastMode ? 'translate-x-4' : 'translate-x-0'
+                    }`}
                 />
               </div>
             </label>
