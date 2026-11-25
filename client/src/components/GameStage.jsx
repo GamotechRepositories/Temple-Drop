@@ -3,6 +3,7 @@ import { PlinkoBoard } from './PlinkoBoard.jsx';
 import { SlotRow } from './SlotRow.jsx';
 import { SpinMeter } from './SpinMeter.jsx';
 import { GameControls } from './GameControls.jsx';
+import { BackgroundAnimation } from './BackgroundAnimation.jsx';
 import { soundManager } from '../audio/soundManager.js';
 
 export const GameStage = ({
@@ -72,6 +73,8 @@ export const GameStage = ({
           alt="Egyptian Desert Night Desktop"
           className="hidden sm:block w-full h-full object-fill pointer-events-none select-none"
         />
+        {/* Background Atmospheric Flying Animations (Birds, Embers, Shooting Star) */}
+        <BackgroundAnimation />
         {/* Subtle dark gradient behind bottom controls */}
         <div className="absolute bottom-0 left-0 right-0 h-36 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />
       </div>
