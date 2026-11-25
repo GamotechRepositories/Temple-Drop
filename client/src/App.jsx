@@ -157,14 +157,20 @@ export const App = () => {
       return handleBonusDrop();
     }
 
-    // If pending features exist, trigger wheel or bonus
+    // If pending features exist, trigger wheel or bonus (allow auto-drop to finish queued rounds if only WHEEL_SPIN is pending)
     if (pendingFeatures && pendingFeatures.length > 0) {
-      const hasSpins = pendingFeatures.some((f) => f.type === 'WHEEL_SPIN');
-      if (hasSpins) {
-        setShowWheel(true);
-        return;
+      const hasBonus = pendingFeatures.some((f) => f.type === 'BONUS');
+      if (hasBonus) {
+        return handleBonusDrop();
       }
-      return handleBonusDrop();
+      if (autoDropCountRef.current === null) {
+        const hasSpins = pendingFeatures.some((f) => f.type === 'WHEEL_SPIN');
+        if (hasSpins) {
+          setShowWheel(true);
+          return;
+        }
+        return handleBonusDrop();
+      }
     }
 
     const totalBetCents = betPerBallCents * ballCount;
@@ -271,11 +277,13 @@ export const App = () => {
 
       // Handle auto drop loop using live refs (avoids stale isDropping/balance closures)
       if (isAutoRunning) {
-        const hasPending = data.pendingFeatures && data.pendingFeatures.length > 0;
+        const hasBonusPending =
+          Boolean(data.activeBonus) ||
+          Boolean(data.pendingFeatures && data.pendingFeatures.some((f) => f.type === 'BONUS'));
         const nextTotalBetCents = betPerBallCents * ballCount;
         const hasEnoughBalance = (data.walletBalanceCents ?? 0) >= nextTotalBetCents;
 
-        if (hasPending || !hasEnoughBalance || document.hidden || autoDropCountRef.current <= 1) {
+        if (hasBonusPending || !hasEnoughBalance || document.hidden || autoDropCountRef.current <= 1) {
           const rounds = [...autoDropSessionRoundsRef.current];
           isAutoSessionRef.current = false;
           autoDropSessionRoundsRef.current = [];
@@ -458,7 +466,7 @@ export const App = () => {
           onBonusDrop={handleBonusDrop}
           autoDropCount={autoDropCount}
           onStartAutoDrop={(count) => {
-            if (isDropping || pendingFeatures.length > 0 || activeBonus) {
+            if (isDropping || activeBonus || pendingFeatures.some((f) => f.type === 'BONUS')) {
               handleDrop();
               return;
             }

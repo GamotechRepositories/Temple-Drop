@@ -131,13 +131,14 @@ router.post(
         return;
       }
 
-      const pendingCount = await PendingFeature.countDocuments({
+      const pendingBonusCount = await PendingFeature.countDocuments({
         userId: user._id,
+        type: 'BONUS',
         status: { $in: ['PENDING', 'ACTIVE'] },
       });
-      if (pendingCount > 0) {
+      if (pendingBonusCount > 0) {
         res.status(400).json({
-          error: 'Please resolve active bonus game or pending wheel spins before dropping again.',
+          error: 'Please resolve active bonus game before dropping again.',
         });
         return;
       }
