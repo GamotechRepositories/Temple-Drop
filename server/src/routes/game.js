@@ -263,13 +263,7 @@ router.post(
       const wheelResult = GameEngine.spinWheel(feature.betPerBallCents, currentGross);
       let updatedWallet = await WalletService.getWallet(user._id);
 
-      if (wheelResult.outcome.isBonus) {
-        await FeatureQueueService.queueBonusFromWheel(
-          user._id,
-          feature.roundId,
-          feature.betPerBallCents
-        );
-      } else if (wheelResult.creditedPayoutCents > 0) {
+      if (wheelResult.creditedPayoutCents > 0) {
         updatedWallet = await WalletService.creditWin(
           user._id,
           wheelResult.creditedPayoutCents,

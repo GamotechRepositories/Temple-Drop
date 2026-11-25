@@ -6,6 +6,8 @@ import {
   Menu,
   Coins,
   RefreshCw,
+  Crown,
+  User,
   User as UserIcon,
 } from 'lucide-react';
 import { centsToCredits } from '@temple-drop/shared';
@@ -19,7 +21,7 @@ export const Header = ({
   onOpenSettings,
   onRefill,
   canRefill,
-  currencySymbol = '🪙',
+  currencySymbol = '₹',
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -45,7 +47,7 @@ export const Header = ({
       {/* Brand Logo & Name */}
       <div className="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
         <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-gradient-to-br from-amber-400 via-amber-600 to-amber-800 flex items-center justify-center shadow-[0_0_12px_rgba(245,158,11,0.5)] border border-amber-300 shrink-0">
-          <span className="text-xl sm:text-2xl leading-none">🗿</span>
+          <Crown className="w-5 h-5 text-slate-950" />
         </div>
         <h1 className="font-display font-black text-xs xs:text-sm sm:text-lg tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-amber-300 to-yellow-500 uppercase whitespace-nowrap">
           Temple Drop
@@ -59,10 +61,15 @@ export const Header = ({
             soundManager.playButtonClick();
             onOpenHowToPlay();
           }}
-          className="flex items-center justify-center space-x-1.5 w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-full bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700 text-xs sm:text-sm font-semibold text-slate-200 transition-all focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-sm"
+          className="flex items-center justify-center space-x-1.5 w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold text-slate-950 transition-all focus:outline-none focus:ring-2 focus:ring-amber-400 hover:brightness-110 active:scale-95"
+          style={{
+            background: 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)',
+            border: '2px solid #fef08a',
+            boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 2px 8px rgba(217, 119, 6, 0.4)',
+          }}
           aria-label="How to play instructions"
         >
-          <HelpCircle className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-amber-400 shrink-0" />
+          <HelpCircle className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-slate-950 shrink-0" />
           <span className="hidden sm:inline">How to play?</span>
         </button>
       </div>
@@ -70,7 +77,7 @@ export const Header = ({
       {/* Right Controls: Balance, Fullscreen, Menu */}
       <div className="flex items-center space-x-1 sm:space-x-3 shrink-0">
         {/* Balance Display */}
-        <div className="flex items-center space-x-1 sm:space-x-1.5 bg-slate-900/95 border border-slate-700/80 rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 shadow-inner">
+        <div className="flex items-center space-x-1 sm:space-x-1.5 bg-slate-900/95 border-2 border-amber-600 rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 shadow-inner">
           <span className="text-xs sm:text-sm font-black font-mono text-white tracking-wide">
             {centsToCredits(balanceCents)}
           </span>
@@ -98,7 +105,12 @@ export const Header = ({
         {/* Fullscreen Toggle */}
         <button
           onClick={toggleFullscreen}
-          className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 hidden sm:flex items-center justify-center transition-all"
+          className="p-2 rounded-xl text-slate-950 hidden sm:flex items-center justify-center transition-all hover:brightness-110 active:scale-95"
+          style={{
+            background: 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)',
+            border: '2px solid #fef08a',
+            boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 2px 8px rgba(217, 119, 6, 0.4)',
+          }}
           aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
         >
           {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -110,14 +122,19 @@ export const Header = ({
             soundManager.playButtonClick();
             onOpenSettings();
           }}
-          className="flex items-center space-x-1 sm:space-x-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-all"
+          className="flex items-center space-x-1 sm:space-x-1.5 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-slate-950 transition-all hover:brightness-110 active:scale-95"
+          style={{
+            background: 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)',
+            border: '2px solid #fef08a',
+            boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 2px 8px rgba(217, 119, 6, 0.4)',
+          }}
           aria-label="Player profile and settings"
         >
-          <span className="text-sm font-semibold hidden md:inline text-slate-300">
+          <span className="text-sm font-bold hidden md:inline text-slate-950">
             {displayName}
           </span>
-          <span className="text-base sm:text-lg leading-none">{avatarIcon || '🤠'}</span>
-          <Menu className="w-4 h-4 text-slate-400" />
+          <User className="w-4 h-4 text-slate-950" />
+          <Menu className="w-4 h-4 text-slate-950" />
         </button>
       </div>
     </header>

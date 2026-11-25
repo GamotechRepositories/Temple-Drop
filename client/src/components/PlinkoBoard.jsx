@@ -101,13 +101,13 @@ export const PlinkoBoard = ({
       ? count > 25
         ? 35
         : count > 10
-        ? 55
-        : 75
+          ? 55
+          : 75
       : count > 25
-      ? 50
-      : count > 10
-      ? 85
-      : 120;
+        ? 50
+        : count > 10
+          ? 85
+          : 120;
     const dropDuration = isFast ? 1200 : count > 25 ? 1800 : 2200;
 
     const newBalls = ballsToAnimate.map((b, idx) => {
@@ -243,12 +243,18 @@ export const PlinkoBoard = ({
         ctx.lineWidth = 1.4;
         ctx.stroke();
 
-        // Inner electric bolt glyph
+        // Inner crisp vector lightning bolt
+        const s = bumperRadius * 0.52;
         ctx.fillStyle = '#451a03';
-        ctx.font = `bold ${Math.round(bumperRadius * 0.9)}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('⚡', x, y + 0.5);
+        ctx.beginPath();
+        ctx.moveTo(x + s * 0.15, y - s);
+        ctx.lineTo(x - s * 0.55, y + s * 0.1);
+        ctx.lineTo(x - s * 0.05, y + s * 0.1);
+        ctx.lineTo(x - s * 0.25, y + s);
+        ctx.lineTo(x + s * 0.55, y - s * 0.1);
+        ctx.lineTo(x + s * 0.05, y - s * 0.1);
+        ctx.closePath();
+        ctx.fill();
 
         ctx.restore();
       });

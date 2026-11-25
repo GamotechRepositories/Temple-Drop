@@ -33,7 +33,7 @@ export const GameStage = ({
   onStartAutoDrop,
   onStopAutoDrop,
   lastWinCents = 0,
-  currencySymbol = '🪙',
+  currencySymbol = '₹',
 }) => {
   // Flash states for the 15 chutes and slots
   const [activeSlotFlashes, setActiveSlotFlashes] = useState({});
@@ -91,16 +91,6 @@ export const GameStage = ({
             alt="Temple Shrine Frame"
             className="absolute inset-0 w-full h-full object-fill pointer-events-none z-20 drop-shadow-[0_12px_28px_rgba(0,0,0,0.85)]"
           />
-
-          {/* Bonus Energy Illuminated Glow around top apex arch */}
-          {energyPercent > 0 && (
-            <div
-              className="absolute top-[8%] left-[50%] -translate-x-1/2 w-10 h-10 rounded-full pointer-events-none z-10 transition-all duration-300"
-              style={{
-                boxShadow: `0 0 ${Math.min(25, Math.round(energyPercent / 4) + 6)}px #22d3ee`,
-              }}
-            />
-          )}
 
           {/* Plinko Board Canvas */}
           <div className="w-full flex justify-center">

@@ -17,9 +17,14 @@
     overflow: hidden;
     background-color: #0c0e14;
     color: #e2e8f0;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+  }
+
+  .font-mono {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-variant-numeric: tabular-nums;
   }
 }
 

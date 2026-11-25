@@ -8,13 +8,25 @@ export const GameRulesModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-lg w-full relative shadow-2xl max-h-[90vh] flex flex-col">
+      <div
+        className="rounded-3xl p-5 max-w-lg w-full relative shadow-2xl max-h-[82dvh] flex flex-col"
+        style={{
+          background: 'linear-gradient(180deg, #0c172c 0%, #070e1c 100%)',
+          border: '2.5px solid #d97706',
+          boxShadow:
+            '0 24px 50px rgba(0, 0, 0, 0.9), inset 0 0 18px rgba(245, 158, 11, 0.14), 0 0 0 1px rgba(254, 240, 138, 0.28)',
+        }}
+      >
         <button
           onClick={() => {
             soundManager.playButtonClick();
             onClose();
           }}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full bg-slate-800 transition-all"
+          className="absolute top-4 right-4 p-2 text-slate-950 rounded-full transition-all hover:brightness-110 active:scale-95"
+          style={{
+            background: 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)',
+            border: '2px solid #fef08a',
+          }}
           aria-label="Close game rules"
         >
           <X className="w-5 h-5" />
@@ -74,43 +86,12 @@ export const GameRulesModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          <div className="bg-slate-950/80 rounded-2xl p-4 border border-slate-800">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3">
-              Temple Wheel Outcomes & Weights
-            </h3>
-            <div className="space-y-2">
-              {GAME_CONFIG.WHEEL_OUTCOMES.map((w) => (
-                <div
-                  key={w.id}
-                  className="flex items-center justify-between text-xs py-1 border-b border-slate-800/80 last:border-0"
-                >
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: w.color }} />
-                    <span className="font-bold text-slate-200">{w.label}</span>
-                  </div>
-                  <span className="font-mono text-slate-400">{w.weight}% Chance</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
           <div className="bg-slate-950/80 rounded-2xl p-4 border border-slate-800 text-xs text-slate-300 space-y-2">
-            <h3 className="font-bold uppercase tracking-wider text-teal-300">
-              Bonus Round Regulations
+            <h3 className="font-bold uppercase tracking-wider text-amber-300">
+              Payout Cap
             </h3>
             <p className="leading-relaxed text-slate-400">
-              • Starts with 5 free balls at the triggering bet value. Free balls do not debit your
-              balance.
-            </p>
-            <p className="leading-relaxed text-slate-400">
-              • Each bumper hit grants +10 bonus energy. Every 100 energy adds 3 extra free balls.
-            </p>
-            <p className="leading-relaxed text-slate-400 font-semibold text-teal-400">
-              • Total free balls granted per bonus session are capped at 50 balls max.
-            </p>
-            <p className="leading-relaxed text-slate-400">
-              • Combined payouts from the originating drop, wheel spins, and bonus rounds are capped
-              at 5,000 ₹.
+              • Combined payouts from the originating drop and wheel spins are capped at 5,000 ₹.
             </p>
           </div>
         </div>
@@ -121,7 +102,12 @@ export const GameRulesModal = ({ isOpen, onClose }) => {
               soundManager.playButtonClick();
               onClose();
             }}
-            className="px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs uppercase tracking-wider transition-all"
+            className="px-6 py-2 rounded-xl text-slate-950 font-black text-xs uppercase tracking-wider transition-all hover:brightness-110 active:scale-95"
+            style={{
+              background: 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)',
+              border: '2px solid #fef08a',
+              boxShadow: '0 4px 12px rgba(217, 119, 6, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45)',
+            }}
           >
             CLOSE
           </button>

@@ -229,11 +229,17 @@ export const BoardCanvas = ({
         ctx.lineWidth = 2;
         ctx.stroke();
 
+        const s = radius * 0.52;
         ctx.fillStyle = '#451a03';
-        ctx.font = `bold ${Math.round(radius * 0.9)}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('⚡', x, y + 0.5);
+        ctx.beginPath();
+        ctx.moveTo(x + s * 0.15, y - s);
+        ctx.lineTo(x - s * 0.55, y + s * 0.1);
+        ctx.lineTo(x - s * 0.05, y + s * 0.1);
+        ctx.lineTo(x - s * 0.25, y + s);
+        ctx.lineTo(x + s * 0.55, y - s * 0.1);
+        ctx.lineTo(x + s * 0.05, y - s * 0.1);
+        ctx.closePath();
+        ctx.fill();
 
         ctx.restore();
       });

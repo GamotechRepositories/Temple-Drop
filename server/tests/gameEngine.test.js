@@ -66,11 +66,11 @@ describe('GameEngine - Core Plinko Math & Physics', () => {
       expect(res.angleTargetDegrees).toBeLessThanOrEqual(360);
     }
 
+    expect(counts['BETTER_LUCK']).toBeGreaterThan(250);
     expect(counts['1x']).toBeGreaterThan(200);
-    expect(counts['2x']).toBeGreaterThan(150);
-    expect(counts['5x']).toBeGreaterThan(100);
+    expect(counts['2x']).toBeGreaterThan(120);
+    expect(counts['5x']).toBeGreaterThan(15);
     expect(counts['10x']).toBeGreaterThan(40);
-    expect(counts['BONUS']).toBeGreaterThan(10);
   });
 
   it('verifies boundary paths: all-left lands at 0, 7-rights land at 7 (SPIN), all-right lands at 14', () => {

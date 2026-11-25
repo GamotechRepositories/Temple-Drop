@@ -24,7 +24,7 @@ export const GameControls = ({
   onStartAutoDrop,
   onStopAutoDrop,
   lastWinCents = 0,
-  currencySymbol = '🪙',
+  currencySymbol = '₹',
 }) => {
   const [showAutoDropdown, setShowAutoDropdown] = useState(false);
 
@@ -66,12 +66,12 @@ export const GameControls = ({
   const isAutoPlaying = autoDropCount !== null;
   const isActionDisabled = isDropping;
 
-  // Adaptive primary button state: Bonus Drop, Wheel Spin, or Standard Play
+  // Adaptive primary button state: Bonus Drop, Wheel Spin, or Standard BET
   let handlePrimaryAction = onDrop;
-  let primaryLabel = 'PLAY';
+  let primaryLabel = 'BET';
   let primaryBg = 'linear-gradient(180deg, #22c55e 0%, #15803d 100%)';
-  let primaryBorder = '1.5px solid #34d399';
-  let primaryShadow = 'inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 12px rgba(21, 128, 61, 0.5)';
+  let primaryBorder = '2px solid #4ade80';
+  let primaryShadow = 'inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px rgba(21, 128, 61, 0.55)';
 
   if (hasActiveBonus || (hasPendingFeatures && pendingSpinsCount === 0)) {
     handlePrimaryAction = onBonusDrop || onDrop;
@@ -87,16 +87,38 @@ export const GameControls = ({
     primaryShadow = 'inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px rgba(2, 132, 199, 0.6)';
   }
 
+  const stepperCardStyle = {
+    background: 'linear-gradient(180deg, #0d182d 0%, #070e1c 100%)',
+    border: '2px solid #d97706',
+    boxShadow: 'inset 0 2px 6px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(254, 240, 138, 0.18)',
+  };
+
   return (
-    <div className="w-full max-w-[940px] mx-auto select-none px-2 z-20">
+    <div className="w-full max-w-[940px] mx-auto select-none px-2 pb-3.5 z-20">
       <div
         className="w-full h-auto rounded-[18px] px-3.5 sm:px-5 py-3.5 sm:py-2.5 shadow-2xl relative"
         style={{
-          background: 'linear-gradient(180deg, #131c2d 0%, #0a111e 100%)',
-          border: '1.5px solid rgba(148, 163, 184, 0.2)',
-          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+          background: 'linear-gradient(180deg, #0c172c 0%, #070e1c 100%)',
+          border: '2.5px solid #d97706',
+          boxShadow:
+            '0 14px 36px rgba(0, 0, 0, 0.85), inset 0 0 18px rgba(245, 158, 11, 0.14), 0 0 0 1px rgba(254, 240, 138, 0.28)',
         }}
       >
+        {/* Top & Bottom Center Egyptian Diamond Gem Medallions */}
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 pointer-events-none z-30 drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 1 L23 12 L12 23 L1 12 Z" fill="#d97706" stroke="#fef08a" strokeWidth="1.5" />
+            <path d="M12 4.5 L19.5 12 L12 19.5 L4.5 12 Z" fill="#06b6d4" stroke="#bae6fd" strokeWidth="1" />
+            <path d="M12 4.5 L15.5 12 L12 19.5 L8.5 12 Z" fill="rgba(255,255,255,0.3)" />
+          </svg>
+        </div>
+        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 pointer-events-none z-30 drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 1 L23 12 L12 23 L1 12 Z" fill="#d97706" stroke="#fef08a" strokeWidth="1.5" />
+            <path d="M12 4.5 L19.5 12 L12 19.5 L4.5 12 Z" fill="#06b6d4" stroke="#bae6fd" strokeWidth="1" />
+            <path d="M12 4.5 L15.5 12 L12 19.5 L8.5 12 Z" fill="rgba(255,255,255,0.3)" />
+          </svg>
+        </div>
         {/* ========================================================
             1. MOBILE VIEW (sm:hidden) - EXACT MATCH TO IMAGE
         ======================================================== */}
@@ -172,11 +194,7 @@ export const GameControls = ({
             {/* BET PER BALL Stepper */}
             <div
               className="h-[60px] xs:h-[64px] tall-mobile-item rounded-[14px] px-3.5 flex items-center justify-between transition-all"
-              style={{
-                background: 'linear-gradient(180deg, #111a28 0%, #0a101b 100%)',
-                border: '1.5px solid #a36940',
-                boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.6)',
-              }}
+              style={stepperCardStyle}
             >
               <div className="flex flex-col">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">
@@ -209,11 +227,7 @@ export const GameControls = ({
             {/* BALL PER DROP Stepper */}
             <div
               className="h-[60px] xs:h-[64px] tall-mobile-item rounded-[14px] px-3.5 flex items-center justify-between transition-all"
-              style={{
-                background: 'linear-gradient(180deg, #111a28 0%, #0a101b 100%)',
-                border: '1.5px solid #a36940',
-                boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.6)',
-              }}
+              style={stepperCardStyle}
             >
               <div className="flex flex-col">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">
@@ -259,11 +273,17 @@ export const GameControls = ({
                 }}
                 className={`w-full h-[60px] xs:h-[64px] tall-mobile-item rounded-[14px] flex items-center justify-center transition-all ${isAutoPlaying
                   ? 'bg-rose-950/80 border-2 border-rose-500 text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.4)] animate-pulse'
-                  : 'bg-[#182338] border border-slate-600/70 text-slate-200 hover:text-white hover:border-slate-400'
+                  : 'text-slate-950 hover:brightness-110 active:scale-95'
                   }`}
-                style={{
-                  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.4)',
-                }}
+                style={
+                  isAutoPlaying
+                    ? undefined
+                    : {
+                        background: 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)',
+                        border: '2px solid #fef08a',
+                        boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 4px 12px rgba(217, 119, 6, 0.45)',
+                      }
+                }
                 aria-label={isAutoPlaying ? 'Stop Auto Drop' : 'Open Auto Drop options'}
               >
                 {isAutoPlaying ? (
@@ -278,8 +298,8 @@ export const GameControls = ({
                   </div>
                 ) : (
                   <div className="flex items-center justify-center space-x-2">
-                    <RefreshCw className="w-5 h-5 xs:w-6 xs:h-6 stroke-[2.2]" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-200 hidden tall-mobile-inline">
+                    <RefreshCw className="w-5 h-5 xs:w-6 xs:h-6 stroke-[2.4] text-slate-950" />
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-950 hidden tall-mobile-inline">
                       AUTO DROP
                     </span>
                   </div>
@@ -332,16 +352,9 @@ export const GameControls = ({
                   </span>
                 </div>
               ) : (
-                <div className="flex items-center space-x-2">
-                  {hasActiveBonus ? (
-                    <Sparkles className="w-6 h-6 xs:w-7 xs:h-7 text-white fill-white ml-0.5 animate-pulse" />
-                  ) : (
-                    <Play className="w-7 h-7 xs:w-8 xs:h-8 text-white fill-white ml-0.5" />
-                  )}
-                  <span className="text-white font-black text-base tracking-wider">
-                    {primaryLabel}
-                  </span>
-                </div>
+                <span className="text-white font-black text-lg tracking-wider">
+                  {primaryLabel}
+                </span>
               )}
             </button>
           </div>
@@ -389,11 +402,7 @@ export const GameControls = ({
             {/* BET PER BALL Stepper */}
             <div
               className="w-[185px] h-[58px] rounded-[14px] px-3.5 flex items-center justify-between transition-all"
-              style={{
-                background: 'linear-gradient(180deg, #111a28 0%, #0a101b 100%)',
-                border: '1.5px solid #a36940',
-                boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.6)',
-              }}
+              style={stepperCardStyle}
             >
               <div className="flex flex-col">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">
@@ -427,11 +436,7 @@ export const GameControls = ({
             {/* BALLS PER DROP Stepper */}
             <div
               className="w-[185px] h-[58px] rounded-[14px] px-3.5 flex items-center justify-between transition-all"
-              style={{
-                background: 'linear-gradient(180deg, #111a28 0%, #0a101b 100%)',
-                border: '1.5px solid #a36940',
-                boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.6)',
-              }}
+              style={stepperCardStyle}
             >
               <div className="flex flex-col">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">
@@ -475,11 +480,17 @@ export const GameControls = ({
                 }}
                 className={`w-[62px] h-[58px] rounded-[14px] flex items-center justify-center transition-all ${isAutoPlaying
                   ? 'bg-rose-950/80 border-2 border-rose-500 text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.4)] animate-pulse'
-                  : 'bg-slate-900/90 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500'
+                  : 'text-slate-950 hover:brightness-110 active:scale-95'
                   }`}
-                style={{
-                  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.4)',
-                }}
+                style={
+                  isAutoPlaying
+                    ? undefined
+                    : {
+                        background: 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)',
+                        border: '2px solid #fef08a',
+                        boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 4px 12px rgba(217, 119, 6, 0.45)',
+                      }
+                }
                 aria-label={isAutoPlaying ? 'Stop Auto Drop' : 'Open Auto Drop options'}
               >
                 {isAutoPlaying ? (
@@ -535,16 +546,9 @@ export const GameControls = ({
               {isDropping ? (
                 <Loader2 className="w-6 h-6 text-white animate-spin" />
               ) : (
-                <>
-                  {hasActiveBonus ? (
-                    <Sparkles className="w-6 h-6 text-white fill-white ml-0.5 animate-pulse" />
-                  ) : (
-                    <Play className="w-7 h-7 text-white fill-white ml-0.5" />
-                  )}
-                  <span className="text-white font-black text-sm tracking-wider">
-                    {primaryLabel}
-                  </span>
-                </>
+                <span className="text-white font-black text-base tracking-wider">
+                  {primaryLabel}
+                </span>
               )}
             </button>
           </div>

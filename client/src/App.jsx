@@ -42,7 +42,47 @@ export const App = () => {
   const pendingDropSettlementRef = useRef(null);
 
   const [autoDropCount, setAutoDropCount] = useState(null);
+  const autoDropCountRef = useRef(null);
+  const autoDropTimerRef = useRef(null);
+  const autoDropSessionRoundsRef = useRef([]);
+  const isAutoSessionRef = useRef(false);
   const [autoPlayBonus, setAutoPlayBonus] = useState(false);
+
+  const stopAutoDrop = useCallback((showSummaryIfReady = false) => {
+    autoDropCountRef.current = null;
+    setAutoDropCount(null);
+    if (autoDropTimerRef.current) {
+      clearTimeout(autoDropTimerRef.current);
+      autoDropTimerRef.current = null;
+    }
+    if (showSummaryIfReady && isAutoSessionRef.current && autoDropSessionRoundsRef.current.length > 0) {
+      const rounds = [...autoDropSessionRoundsRef.current];
+      const last = rounds[rounds.length - 1];
+      isAutoSessionRef.current = false;
+      autoDropSessionRoundsRef.current = [];
+      setLatestRoundResult({
+        ...last,
+        isAutoDropSummary: true,
+        autoDropRounds: rounds,
+      });
+      setShowBetResult(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden && autoDropCountRef.current !== null) {
+        stopAutoDrop();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      if (autoDropTimerRef.current) {
+        clearTimeout(autoDropTimerRef.current);
+      }
+    };
+  }, [stopAutoDrop]);
 
   const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [showGameRules, setShowGameRules] = useState(false);
@@ -105,7 +145,7 @@ export const App = () => {
 
     try {
       await api.updatePreferences(updated);
-    } catch {}
+    } catch { }
   };
 
   // Regular / Active Drop Handler
@@ -131,7 +171,7 @@ export const App = () => {
     if (wallet.balanceCents < totalBetCents) {
       setDropError('Insufficient credits for this bet. Refill or reduce your bet.');
       setTimeout(() => setDropError(null), 4000);
-      setAutoDropCount(null);
+      stopAutoDrop();
       return;
     }
 
@@ -152,12 +192,17 @@ export const App = () => {
     } catch (err) {
       setWallet((prev) => ({ ...prev, balanceCents: prevBalance }));
       setIsDropping(false);
-      setAutoDropCount(null);
+      stopAutoDrop();
       setDropError(err.message || 'Drop failed');
       setTimeout(() => setDropError(null), 4000);
       refetchGameState();
     }
   };
+
+  const handleDropRef = useRef(handleDrop);
+  useEffect(() => {
+    handleDropRef.current = handleDrop;
+  });
 
   // Bonus Drop
   const handleBonusDrop = async () => {
@@ -210,32 +255,61 @@ export const App = () => {
       }
 
       // Check for pending wheel spins
+      const isAutoRunning = autoDropCountRef.current !== null;
+      const inAutoSession = isAutoSessionRef.current;
+
+      if (inAutoSession) {
+        autoDropSessionRoundsRef.current.push(data);
+      }
+
       if (data.pendingFeatures && data.pendingFeatures.length > 0) {
         const hasSpins = data.pendingFeatures.some((f) => f.type === 'WHEEL_SPIN');
-        if (hasSpins && !data.activeBonus && autoDropCount === null) {
+        if (hasSpins && !data.activeBonus && !isAutoRunning) {
           setShowWheel(true);
         }
       }
 
-      // Record latest round and show detailed Bet Result Popup
-      setLatestRoundResult(data);
-      if (autoDropCount === null || autoDropCount <= 1) {
-        setShowBetResult(true);
-      }
+      // Handle auto drop loop using live refs (avoids stale isDropping/balance closures)
+      if (isAutoRunning) {
+        const hasPending = data.pendingFeatures && data.pendingFeatures.length > 0;
+        const nextTotalBetCents = betPerBallCents * ballCount;
+        const hasEnoughBalance = (data.walletBalanceCents ?? 0) >= nextTotalBetCents;
 
-      // Handle auto drop loop
-      if (autoDropCount !== null) {
-        if (data.pendingFeatures && data.pendingFeatures.length > 0) {
-          setAutoDropCount(null);
+        if (hasPending || !hasEnoughBalance || document.hidden || autoDropCountRef.current <= 1) {
+          const rounds = [...autoDropSessionRoundsRef.current];
+          isAutoSessionRef.current = false;
+          autoDropSessionRoundsRef.current = [];
+          stopAutoDrop(false);
+          setLatestRoundResult({
+            ...data,
+            isAutoDropSummary: true,
+            autoDropRounds: rounds,
+          });
           setShowBetResult(true);
-        } else if (autoDropCount > 1) {
-          setAutoDropCount((prev) => (prev ? prev - 1 : null));
-          setTimeout(() => {
-            handleDrop();
-          }, fastMode ? 100 : 350);
         } else {
-          setAutoDropCount(null);
+          const nextRemaining = autoDropCountRef.current - 1;
+          autoDropCountRef.current = nextRemaining;
+          setAutoDropCount(nextRemaining);
+          autoDropTimerRef.current = setTimeout(() => {
+            if (autoDropCountRef.current !== null && !document.hidden) {
+              handleDropRef.current();
+            }
+          }, fastMode ? 120 : 350);
         }
+      } else if (inAutoSession) {
+        // User pressed Stop while this final in-flight auto-drop round was animating
+        const rounds = [...autoDropSessionRoundsRef.current];
+        isAutoSessionRef.current = false;
+        autoDropSessionRoundsRef.current = [];
+        setLatestRoundResult({
+          ...data,
+          isAutoDropSummary: true,
+          autoDropRounds: rounds,
+        });
+        setShowBetResult(true);
+      } else {
+        setLatestRoundResult(data);
+        setShowBetResult(true);
       }
 
       // Handle auto play bonus loop
@@ -245,7 +319,7 @@ export const App = () => {
         }, fastMode ? 100 : 350);
       }
     }
-  }, [autoDropCount, autoPlayBonus, fastMode, handleDrop, handleBonusDrop]);
+  }, [autoPlayBonus, betPerBallCents, ballCount, fastMode, handleBonusDrop, stopAutoDrop]);
 
   const handleSpinWheel = async () => {
     const res = await api.postSpin();
@@ -335,7 +409,7 @@ export const App = () => {
   ]);
 
   const canRefill = wallet.balanceCents < GAME_CONFIG.MIN_BET_CENTS && pendingFeatures.length === 0 && !activeBonus;
-  const currentAvatar = GAME_CONFIG.AVATARS.find((a) => a.id === preferences.avatarId)?.icon || '🤠';
+  const currentAvatar = GAME_CONFIG.AVATARS.find((a) => a.id === preferences.avatarId)?.icon || 'E';
 
   return (
     <div className="relative w-full h-screen h-[100dvh] max-h-[100dvh] bg-[#050811] text-slate-100 flex flex-col justify-between overflow-hidden font-sans select-none">
@@ -348,19 +422,19 @@ export const App = () => {
         onOpenSettings={() => setShowSettings(true)}
         onRefill={handleRefill}
         canRefill={canRefill}
-        currencySymbol="🪙"
+        currencySymbol="₹"
       />
 
       {/* 2. MAIN GAME STAGE VIEWPORT */}
       <main className="relative flex-1 flex flex-col w-full overflow-hidden">
         {dropError && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl bg-rose-950/95 border border-rose-500 text-rose-200 text-xs sm:text-sm font-bold shadow-2xl flex items-center space-x-2 animate-bounce">
-            <span>⚠️ {dropError}</span>
+            <span>{dropError}</span>
             <button
               onClick={() => setDropError(null)}
               className="ml-2 text-rose-400 hover:text-white font-black"
             >
-              ✕
+              Close
             </button>
           </div>
         )}
@@ -384,12 +458,19 @@ export const App = () => {
           onBonusDrop={handleBonusDrop}
           autoDropCount={autoDropCount}
           onStartAutoDrop={(count) => {
+            if (isDropping || pendingFeatures.length > 0 || activeBonus) {
+              handleDrop();
+              return;
+            }
+            autoDropSessionRoundsRef.current = [];
+            isAutoSessionRef.current = true;
+            autoDropCountRef.current = count;
             setAutoDropCount(count);
             handleDrop();
           }}
-          onStopAutoDrop={() => setAutoDropCount(null)}
+          onStopAutoDrop={() => stopAutoDrop(!isDropping)}
           lastWinCents={lastWinCents}
-          currencySymbol="🪙"
+          currencySymbol="₹"
         />
       </main>
 

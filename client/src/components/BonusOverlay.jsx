@@ -43,33 +43,13 @@ export const BonusOverlay = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 items-center">
-          <div className="bg-slate-950/80 rounded-xl p-2.5 border border-teal-900">
-            <div className="flex items-center justify-between text-[11px] mb-1">
-              <span className="flex items-center space-x-1 text-slate-300 font-semibold">
-                <Flame className="w-3.5 h-3.5 text-teal-400" />
-                <span>Energy (+3 balls @ 100)</span>
-              </span>
-              <span className="font-mono font-bold text-teal-400">
-                {activeBonus.bonusEnergy}/100
-              </span>
-            </div>
-            <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden p-0.5">
-              <div
-                className="h-full bg-gradient-to-r from-teal-500 to-cyan-300 rounded-full transition-all duration-300 shadow-glow-teal"
-                style={{ width: `${energyPercent}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="bg-slate-950/80 rounded-xl p-2.5 border border-teal-900 flex flex-col justify-center">
-            <span className="text-[10px] uppercase text-slate-400 font-semibold">
-              Bonus Win
-            </span>
-            <span className="text-base sm:text-lg font-black font-mono text-emerald-400">
-              +{centsToCredits(activeBonus.accumulatedWinCents)} ₹
-            </span>
-          </div>
+        <div className="bg-slate-950/80 rounded-xl p-3 border border-teal-900 flex items-center justify-between">
+          <span className="text-xs uppercase text-slate-400 font-semibold">
+            Bonus Win
+          </span>
+          <span className="text-lg sm:text-xl font-black font-mono text-emerald-400">
+            +{centsToCredits(activeBonus.accumulatedWinCents)} ₹
+          </span>
         </div>
 
         <div className="flex items-center space-x-2 pt-1">

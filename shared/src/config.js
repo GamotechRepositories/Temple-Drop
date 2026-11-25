@@ -53,13 +53,22 @@ export const GAME_CONFIG = {
     { index: 14, label: '100x', num: 100, den: 1, isSpin: false, color: '#f43f5e' },
   ],
 
-  // Wheel configuration: 1x (35%), 2x (30%), 5x (20%), 10x (10%), BONUS (5%)
+  // Wheel configuration: Better Luck Next Time (35%), 1x (30%), 2x (20%), 5x (5%), 10x (10%)
   WHEEL_OUTCOMES: [
-    { id: '1x', label: '1x', num: 1, den: 1, isBonus: false, weight: 35, color: '#0284c7' },
-    { id: '2x', label: '2x', num: 2, den: 1, isBonus: false, weight: 30, color: '#059669' },
-    { id: '5x', label: '5x', num: 5, den: 1, isBonus: false, weight: 20, color: '#d97706' },
+    {
+      id: 'BETTER_LUCK',
+      label: 'Better Luck Next Time',
+      wedgeLabel: 'NO WIN',
+      num: 0,
+      den: 1,
+      isBonus: false,
+      weight: 35,
+      color: '#9333ea',
+    },
+    { id: '1x', label: '1x', num: 1, den: 1, isBonus: false, weight: 30, color: '#0284c7' },
+    { id: '2x', label: '2x', num: 2, den: 1, isBonus: false, weight: 20, color: '#059669' },
+    { id: '5x', label: '5x', num: 5, den: 1, isBonus: false, weight: 5, color: '#d97706' },
     { id: '10x', label: '10x', num: 10, den: 1, isBonus: false, weight: 10, color: '#dc2626' },
-    { id: 'BONUS', label: 'BONUS', num: 0, den: 1, isBonus: true, weight: 5, color: '#9333ea' },
   ],
 
   // Auto drop count presets
@@ -67,11 +76,11 @@ export const GAME_CONFIG = {
 
   // Avatar presets
   AVATARS: [
-    { id: 'explorer', name: 'Explorer', icon: '🤠' },
-    { id: 'priestess', name: 'Priestess', icon: '🧝‍♀️' },
-    { id: 'shaman', name: 'Shaman', icon: '🧙‍♂️' },
-    { id: 'jaguar', name: 'Jaguar', icon: '🐆' },
-    { id: 'golden_idol', name: 'Golden Idol', icon: '🗿' },
+    { id: 'explorer', name: 'Explorer', icon: 'E' },
+    { id: 'priestess', name: 'Priestess', icon: 'P' },
+    { id: 'shaman', name: 'Shaman', icon: 'S' },
+    { id: 'jaguar', name: 'Jaguar', icon: 'J' },
+    { id: 'golden_idol', name: 'Golden Idol', icon: 'G' },
   ],
 };
 

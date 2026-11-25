@@ -50,36 +50,6 @@ export const MetersPanel = ({
         )}
       </div>
 
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-lg backdrop-blur-md">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center space-x-2">
-            <Flame className="w-5 h-5 text-teal-400 animate-pulse" />
-            <span className="text-xs sm:text-sm font-bold tracking-wide text-slate-200 uppercase">
-              Bonus Energy
-            </span>
-          </div>
-          <span className="text-xs font-mono font-bold text-teal-300">
-            {energyPoints} / 100
-          </span>
-        </div>
-
-        <div className="w-full h-3 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800">
-          <div
-            className="h-full bg-gradient-to-r from-teal-700 via-teal-500 to-cyan-300 rounded-full transition-all duration-300 shadow-glow-teal"
-            style={{ width: `${energyPercent}%` }}
-          />
-        </div>
-
-        {(hasActiveBonus || pendingBonusCount > 0) && (
-          <div className="mt-2.5 px-2.5 py-1.5 rounded-lg bg-teal-950/80 border border-teal-500/50 flex items-center justify-between text-xs">
-            <span className="text-teal-300 font-semibold">Bonus Game Ready</span>
-            <span className="px-1.5 py-0.5 rounded bg-teal-500 text-slate-950 font-bold text-[10px]">
-              ACTIVE
-            </span>
-          </div>
-        )}
-      </div>
-
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-lg backdrop-blur-md flex flex-col justify-center">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">

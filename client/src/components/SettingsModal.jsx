@@ -3,15 +3,14 @@ import {
   X,
   Volume2,
   Music,
-  Sliders,
   Zap,
-  Eye,
   FileText,
   History,
   LogOut,
   User as UserIcon,
+  ChevronRight,
+  ShieldCheck,
 } from 'lucide-react';
-import { GAME_CONFIG } from '@temple-drop/shared';
 import { soundManager } from '../audio/soundManager.js';
 
 export const SettingsModal = ({
@@ -28,154 +27,183 @@ export const SettingsModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-md w-full relative shadow-2xl max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 select-none animate-fadeIn">
+      <div
+        className="rounded-3xl p-4 sm:p-5 max-w-sm sm:max-w-md w-full relative shadow-2xl max-h-[82dvh] flex flex-col transition-all overflow-hidden"
+        style={{
+          background: 'linear-gradient(180deg, #0b162a 0%, #060d1a 100%)',
+          border: '2.5px solid #d97706',
+          boxShadow:
+            '0 24px 50px rgba(0, 0, 0, 0.9), inset 0 0 18px rgba(245, 158, 11, 0.14), 0 0 0 1px rgba(254, 240, 138, 0.28)',
+        }}
+      >
+        {/* Close Button */}
         <button
           onClick={() => {
             soundManager.playButtonClick();
             onClose();
           }}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full bg-slate-800 transition-all"
+          className="absolute top-5 right-5 p-2 text-slate-950 rounded-full transition-all hover:brightness-110 active:scale-95 z-10"
+          style={{
+            background: 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)',
+            border: '2px solid #fef08a',
+          }}
           aria-label="Close settings"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="flex items-center space-x-3 pb-4 mb-4 border-b border-slate-800">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-2xl shadow-glow-gold border border-amber-300">
-            {GAME_CONFIG.AVATARS.find((a) => a.id === preferences.avatarId)?.icon || '🤠'}
+        {/* User Profile Header */}
+        <div className="flex items-center space-x-3 pb-4 mb-4 border-b border-slate-800/80 pr-8">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.4)] border border-amber-300 shrink-0">
+            <UserIcon className="w-6 h-6 text-slate-950" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-slate-100 text-sm truncate">
+            <h3 className="font-bold text-slate-100 text-sm truncate" title={user?.email || 'Demo Explorer'}>
               {user?.email || 'Demo Explorer'}
             </h3>
-            <div className="flex items-center space-x-2 mt-0.5">
+            <div className="flex items-center space-x-1.5 mt-1">
               {user?.isGuest ? (
-                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-semibold border border-amber-500/30">
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 text-[10px] font-bold border border-amber-500/30 uppercase tracking-wider">
                   Guest Demo
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 text-[10px] font-semibold border border-teal-500/30">
-                  Verified Account
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 text-[10px] font-bold border border-emerald-500/30 uppercase tracking-wider flex items-center space-x-1">
+                  <ShieldCheck className="w-3 h-3 inline" />
+                  <span>Verified Account</span>
                 </span>
               )}
             </div>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-          <div>
-            <span className="text-xs uppercase font-bold text-slate-400 tracking-wider">
-              Choose Avatar
+        {/* Scrollable Content Body (Choose Avatar REMOVED per user request) */}
+        <div className="flex-1 overflow-y-auto space-y-3.5 pr-0.5">
+          {/* Audio & Visual Preferences Card */}
+          <div className="bg-[#0b121e]/80 rounded-2xl p-3.5 sm:p-4 border border-slate-800/90 space-y-3 shadow-inner">
+            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
+              Game Preferences
             </span>
-            <div className="grid grid-cols-5 gap-2 mt-2">
-              {GAME_CONFIG.AVATARS.map((av) => {
-                const isSelected = preferences.avatarId === av.id;
-                return (
-                  <button
-                    key={av.id}
-                    onClick={() => {
-                      soundManager.playButtonClick();
-                      onUpdatePreferences({ avatarId: av.id });
-                    }}
-                    title={av.name}
-                    className={`p-2.5 rounded-2xl border text-xl flex items-center justify-center transition-all ${
-                      isSelected
-                        ? 'bg-amber-500/20 border-amber-400 shadow-glow-gold scale-105'
-                        : 'bg-slate-950/80 border-slate-800 hover:border-slate-700'
-                    }`}
-                  >
-                    {av.icon}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
 
-          <div className="bg-slate-950/80 rounded-2xl p-4 border border-slate-800 space-y-3">
-            <div className="flex items-center justify-between">
+            {/* Sound Effects */}
+            <div className="flex items-center justify-between py-0.5">
               <div className="flex items-center space-x-2.5">
-                <Volume2 className="w-4 h-4 text-slate-300" />
+                <div className="w-7 h-7 rounded-lg bg-slate-800/80 flex items-center justify-center text-slate-300">
+                  <Volume2 className="w-4 h-4" />
+                </div>
                 <span className="text-xs font-semibold text-slate-200">Sound Effects</span>
               </div>
-              <input
-                type="checkbox"
-                checked={preferences.soundEnabled}
-                onChange={(e) => {
-                  soundManager.setSoundEnabled(e.target.checked);
-                  onUpdatePreferences({ soundEnabled: e.target.checked });
+              <button
+                type="button"
+                role="switch"
+                aria-checked={preferences.soundEnabled}
+                onClick={() => {
+                  soundManager.playButtonClick();
+                  soundManager.setSoundEnabled(!preferences.soundEnabled);
+                  onUpdatePreferences({ soundEnabled: !preferences.soundEnabled });
                 }}
-                className="w-5 h-5 rounded bg-slate-800 border-slate-700 text-teal-500 cursor-pointer"
-              />
+                className="w-10 h-5.5 rounded-full p-0.5 transition-all duration-200 cursor-pointer flex items-center"
+                style={{
+                  background: preferences.soundEnabled
+                    ? 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)'
+                    : '#0f172a',
+                  border: preferences.soundEnabled ? '1.5px solid #fef08a' : '1.5px solid #d97706',
+                  boxShadow: preferences.soundEnabled ? '0 0 10px rgba(245, 158, 11, 0.45)' : 'none',
+                }}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
+                    preferences.soundEnabled ? 'translate-x-4 bg-white' : 'translate-x-0 bg-amber-300'
+                  }`}
+                />
+              </button>
             </div>
 
-            <div className="flex items-center justify-between">
+            {/* Temple Ambient Music */}
+            <div className="flex items-center justify-between py-0.5">
               <div className="flex items-center space-x-2.5">
-                <Music className="w-4 h-4 text-slate-300" />
+                <div className="w-7 h-7 rounded-lg bg-slate-800/80 flex items-center justify-center text-slate-300">
+                  <Music className="w-4 h-4" />
+                </div>
                 <span className="text-xs font-semibold text-slate-200">Temple Ambient Music</span>
               </div>
-              <input
-                type="checkbox"
-                checked={preferences.musicEnabled}
-                onChange={(e) => {
-                  soundManager.setMusicEnabled(e.target.checked);
-                  onUpdatePreferences({ musicEnabled: e.target.checked });
+              <button
+                type="button"
+                role="switch"
+                aria-checked={preferences.musicEnabled}
+                onClick={() => {
+                  soundManager.playButtonClick();
+                  soundManager.setMusicEnabled(!preferences.musicEnabled);
+                  onUpdatePreferences({ musicEnabled: !preferences.musicEnabled });
                 }}
-                className="w-5 h-5 rounded bg-slate-800 border-slate-700 text-teal-500 cursor-pointer"
-              />
+                className="w-10 h-5.5 rounded-full p-0.5 transition-all duration-200 cursor-pointer flex items-center"
+                style={{
+                  background: preferences.musicEnabled
+                    ? 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)'
+                    : '#0f172a',
+                  border: preferences.musicEnabled ? '1.5px solid #fef08a' : '1.5px solid #d97706',
+                  boxShadow: preferences.musicEnabled ? '0 0 10px rgba(245, 158, 11, 0.45)' : 'none',
+                }}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
+                    preferences.musicEnabled ? 'translate-x-4 bg-white' : 'translate-x-0 bg-amber-300'
+                  }`}
+                />
+              </button>
             </div>
 
-            <div className="flex items-center justify-between">
+            {/* Fast Mode */}
+            <div className="flex items-center justify-between py-0.5">
               <div className="flex items-center space-x-2.5">
-                <Sliders className="w-4 h-4 text-slate-300" />
-                <span className="text-xs font-semibold text-slate-200">Ball Animations</span>
-              </div>
-              <input
-                type="checkbox"
-                checked={preferences.animationEnabled}
-                onChange={(e) => onUpdatePreferences({ animationEnabled: e.target.checked })}
-                className="w-5 h-5 rounded bg-slate-800 border-slate-700 text-teal-500 cursor-pointer"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2.5">
-                <Zap className="w-4 h-4 text-amber-400" />
+                <div className="w-7 h-7 rounded-lg bg-slate-800/80 flex items-center justify-center text-amber-400">
+                  <Zap className="w-4 h-4" />
+                </div>
                 <span className="text-xs font-semibold text-slate-200">Fast Mode</span>
               </div>
-              <input
-                type="checkbox"
-                checked={preferences.fastMode}
-                onChange={(e) => onUpdatePreferences({ fastMode: e.target.checked })}
-                className="w-5 h-5 rounded bg-slate-800 border-slate-700 text-amber-500 cursor-pointer"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2.5">
-                <Eye className="w-4 h-4 text-slate-300" />
-                <span className="text-xs font-semibold text-slate-200">Reduced Motion</span>
-              </div>
-              <input
-                type="checkbox"
-                checked={preferences.reducedMotion}
-                onChange={(e) => onUpdatePreferences({ reducedMotion: e.target.checked })}
-                className="w-5 h-5 rounded bg-slate-800 border-slate-700 text-teal-500 cursor-pointer"
-              />
+              <button
+                type="button"
+                role="switch"
+                aria-checked={preferences.fastMode}
+                onClick={() => {
+                  soundManager.playButtonClick();
+                  onUpdatePreferences({ fastMode: !preferences.fastMode });
+                }}
+                className="w-10 h-5.5 rounded-full p-0.5 transition-all duration-200 cursor-pointer flex items-center"
+                style={{
+                  background: preferences.fastMode
+                    ? 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)'
+                    : '#0f172a',
+                  border: preferences.fastMode ? '1.5px solid #fef08a' : '1.5px solid #d97706',
+                  boxShadow: preferences.fastMode ? '0 0 10px rgba(245, 158, 11, 0.45)' : 'none',
+                }}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
+                    preferences.fastMode ? 'translate-x-4 bg-white' : 'translate-x-0 bg-amber-300'
+                  }`}
+                />
+              </button>
             </div>
           </div>
 
-          <div className="space-y-2">
+          {/* Quick Navigation Links (Dark navy cards with golden borders matching reference) */}
+          <div className="space-y-2.5">
             <button
               onClick={() => {
                 soundManager.playButtonClick();
                 onClose();
                 onOpenRules();
               }}
-              className="w-full flex items-center space-x-2.5 p-3 rounded-2xl bg-slate-950/80 hover:bg-slate-800/80 border border-slate-800 text-xs font-semibold text-slate-200 transition-all"
+              className="w-full flex items-center justify-between p-3 rounded-2xl bg-[#0b1426] hover:bg-[#101c34] border-2 border-amber-600 text-xs font-bold text-slate-100 transition-all group shadow-sm"
             >
-              <FileText className="w-4 h-4 text-teal-400" />
-              <span>Game Rules & Limits</span>
+              <div className="flex items-center space-x-2.5">
+                <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <span>Game Rules & Limits</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-amber-400 transition-all" />
             </button>
 
             <button
@@ -184,14 +212,20 @@ export const SettingsModal = ({
                 onClose();
                 onOpenHistory();
               }}
-              className="w-full flex items-center space-x-2.5 p-3 rounded-2xl bg-slate-950/80 hover:bg-slate-800/80 border border-slate-800 text-xs font-semibold text-slate-200 transition-all"
+              className="w-full flex items-center justify-between p-3 rounded-2xl bg-[#0b1426] hover:bg-[#101c34] border-2 border-amber-600 text-xs font-bold text-slate-100 transition-all group shadow-sm"
             >
-              <History className="w-4 h-4 text-amber-400" />
-              <span>My Bet History</span>
+              <div className="flex items-center space-x-2.5">
+                <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400">
+                  <History className="w-4 h-4" />
+                </div>
+                <span>My Bet History</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-amber-400 transition-all" />
             </button>
           </div>
 
-          <div className="pt-2">
+          {/* Sign In / Save Progress or Logout Button */}
+          <div className="pt-1">
             {user?.isGuest ? (
               <button
                 onClick={() => {
@@ -199,9 +233,14 @@ export const SettingsModal = ({
                   onClose();
                   onOpenAuth();
                 }}
-                className="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2"
+                className="w-full py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 text-slate-950 hover:brightness-110 active:scale-95 shadow-lg"
+                style={{
+                  background: 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)',
+                  border: '2px solid #fef08a',
+                  boxShadow: '0 4px 14px rgba(217, 119, 6, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45)',
+                }}
               >
-                <UserIcon className="w-4 h-4" />
+                <UserIcon className="w-4 h-4 text-slate-950" />
                 <span>Save Progress / Sign In</span>
               </button>
             ) : (
@@ -211,7 +250,12 @@ export const SettingsModal = ({
                   onLogout();
                   onClose();
                 }}
-                className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2"
+                className="w-full py-3 rounded-2xl text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 hover:brightness-110 active:scale-95"
+                style={{
+                  background: 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)',
+                  border: '2px solid #fef08a',
+                  boxShadow: '0 4px 14px rgba(217, 119, 6, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45)',
+                }}
               >
                 <LogOut className="w-4 h-4" />
                 <span>Logout</span>

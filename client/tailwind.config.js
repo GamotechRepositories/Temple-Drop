@@ -26,8 +26,10 @@ export default {
         '15': 'repeat(15, minmax(0, 1fr))',
       },
       fontFamily: {
-        temple: ['Cabinet Grotesk', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['Cinzel', 'Trajan Pro', 'Georgia', 'serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        temple: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       boxShadow: {
         'glow-teal': '0 0 25px rgba(13, 148, 136, 0.45)',
