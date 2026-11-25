@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
 import gameRoutes from './routes/game.js';
 import profileRoutes from './routes/profile.js';
@@ -12,8 +15,12 @@ import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export function createServer() {
   const app = express();
+  app.set('trust proxy', 1);
 
   const allowedOrigins = [
     process.env.CORS_ORIGIN || 'http://localhost:5173',
@@ -44,6 +51,18 @@ export function createServer() {
   app.use('/api/auth', authRoutes);
   app.use('/api/game', gameRoutes);
   app.use('/api/profile', profileRoutes);
+
+  // Serve built client in production / single-service deployment (e.g. Render)
+  const clientDistPath = path.resolve(__dirname, '../../client/dist');
+  if (fs.existsSync(clientDistPath)) {
+    app.use(express.static(clientDistPath));
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api')) {
+        return next();
+      }
+      return res.sendFile(path.join(clientDistPath, 'index.html'));
+    });
+  }
 
   app.use(errorHandler);
 

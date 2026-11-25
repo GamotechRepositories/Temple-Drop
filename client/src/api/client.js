@@ -1,6 +1,12 @@
+const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+
 class ApiClient {
   constructor() {
     this.csrfToken = null;
+  }
+
+  buildUrl(endpoint) {
+    return `${API_BASE_URL}${endpoint}`;
   }
 
   generateIdempotencyKey() {
@@ -9,7 +15,7 @@ class ApiClient {
 
   async fetchCsrfToken() {
     try {
-      const res = await fetch('/api/csrf-token', { credentials: 'include' });
+      const res = await fetch(this.buildUrl('/api/csrf-token'), { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         this.csrfToken = data.csrfToken;
@@ -39,7 +45,7 @@ class ApiClient {
       headers['x-idempotency-key'] = this.generateIdempotencyKey();
     }
 
-    const response = await fetch(endpoint, {
+    const response = await fetch(this.buildUrl(endpoint), {
       ...options,
       headers,
       credentials: 'include',

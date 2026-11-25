@@ -12,6 +12,7 @@ import { HistoryModal } from './components/HistoryModal.jsx';
 import { SettingsModal } from './components/SettingsModal.jsx';
 import { AuthModal } from './components/AuthModal.jsx';
 import { BetResultModal } from './components/BetResultModal.jsx';
+import { TempleIntro, shouldShowTempleIntro } from './components/TempleIntro.jsx';
 
 export const App = () => {
   const queryClient = useQueryClient();
@@ -88,6 +89,23 @@ export const App = () => {
   const [showGameRules, setShowGameRules] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showIntro, setShowIntro] = useState(() => shouldShowTempleIntro(false));
+  const gameShellRef = useRef(null);
+  const wasShowingIntroRef = useRef(showIntro);
+
+  useEffect(() => {
+    if (gameShellRef.current) {
+      gameShellRef.current.inert = showIntro;
+    }
+    if (wasShowingIntroRef.current && !showIntro) {
+      document.getElementById('game-title')?.focus({ preventScroll: true });
+    }
+    wasShowingIntroRef.current = showIntro;
+  }, [showIntro]);
+
+  const handleIntroComplete = useCallback(() => {
+    setShowIntro(false);
+  }, []);
   const [showWheel, setShowWheel] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [showBetResult, setShowBetResult] = useState(false);
@@ -363,6 +381,7 @@ export const App = () => {
   // Keyboard controls: Space to drop, Esc to close modals
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (showIntro) return;
       if (e.code === 'Space') {
         if (showBetResult) {
           e.preventDefault();
@@ -402,6 +421,7 @@ export const App = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
+    showIntro,
     showHowToPlay,
     showGameRules,
     showHistory,
@@ -421,66 +441,82 @@ export const App = () => {
 
   return (
     <div className="relative w-full h-screen h-[100dvh] max-h-[100dvh] bg-[#050811] text-slate-100 flex flex-col justify-between overflow-hidden font-sans select-none">
-      {/* 1. TOP HEADER */}
-      <Header
-        user={user}
-        balanceCents={wallet.balanceCents}
-        avatarIcon={currentAvatar}
-        onOpenHowToPlay={() => setShowHowToPlay(true)}
-        onOpenSettings={() => setShowSettings(true)}
-        onRefill={handleRefill}
-        canRefill={canRefill}
-        currencySymbol="₹"
-      />
-
-      {/* 2. MAIN GAME STAGE VIEWPORT */}
-      <main className="relative flex-1 flex flex-col w-full overflow-hidden">
-        {dropError && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl bg-rose-950/95 border border-rose-500 text-rose-200 text-xs sm:text-sm font-bold shadow-2xl flex items-center space-x-2 animate-bounce">
-            <span>{dropError}</span>
-            <button
-              onClick={() => setDropError(null)}
-              className="ml-2 text-rose-400 hover:text-white font-black"
-            >
-              Close
-            </button>
-          </div>
-        )}
-        <GameStage
-          ballsToAnimate={ballsToAnimate}
-          onAnimationComplete={handleAnimationComplete}
-          fastMode={fastMode}
-          onToggleFastMode={() => handleUpdatePreferences({ fastMode: !fastMode })}
+      {/* 0. TEMPLE DOOR OPENING ANIMATION */}
+      {showIntro && (
+        <TempleIntro
           reducedMotion={reducedMotion}
-          spinPoints={spinPoints}
-          energyPoints={energyPoints}
-          pendingFeatures={pendingFeatures}
-          activeBonus={activeBonus}
-          onOpenWheel={() => setShowWheel(true)}
-          betPerBallCents={betPerBallCents}
-          ballCount={ballCount}
-          onChangeBet={setBetPerBallCents}
-          onChangeBallCount={setBallCount}
-          isDropping={isDropping}
-          onDrop={handleDrop}
-          onBonusDrop={handleBonusDrop}
-          autoDropCount={autoDropCount}
-          onStartAutoDrop={(count) => {
-            if (isDropping || activeBonus || pendingFeatures.some((f) => f.type === 'BONUS')) {
-              handleDrop();
-              return;
-            }
-            autoDropSessionRoundsRef.current = [];
-            isAutoSessionRef.current = true;
-            autoDropCountRef.current = count;
-            setAutoDropCount(count);
-            handleDrop();
-          }}
-          onStopAutoDrop={() => stopAutoDrop(!isDropping)}
-          lastWinCents={lastWinCents}
+          onComplete={handleIntroComplete}
+        />
+      )}
+
+      {/* UNDERLYING GAME SHELL (inert while door intro is active) */}
+      <div
+        ref={gameShellRef}
+        aria-hidden={showIntro || undefined}
+        className={`flex-1 flex flex-col justify-between overflow-hidden ${showIntro ? 'pointer-events-none' : ''
+          }`}
+      >
+        {/* 1. TOP HEADER */}
+        <Header
+          user={user}
+          balanceCents={wallet.balanceCents}
+          avatarIcon={currentAvatar}
+          onOpenHowToPlay={() => setShowHowToPlay(true)}
+          onOpenSettings={() => setShowSettings(true)}
+          onRefill={handleRefill}
+          canRefill={canRefill}
           currencySymbol="₹"
         />
-      </main>
+
+        {/* 2. MAIN GAME STAGE VIEWPORT */}
+        <main className={`relative flex-1 flex flex-col w-full overflow-hidden ${showIntro ? 'animate-game-back-to-forward' : ''}`}>
+          {dropError && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl bg-rose-950/95 border border-rose-500 text-rose-200 text-xs sm:text-sm font-bold shadow-2xl flex items-center space-x-2 animate-bounce">
+              <span>{dropError}</span>
+              <button
+                onClick={() => setDropError(null)}
+                className="ml-2 text-rose-400 hover:text-white font-black"
+              >
+                Close
+              </button>
+            </div>
+          )}
+          <GameStage
+            ballsToAnimate={ballsToAnimate}
+            onAnimationComplete={handleAnimationComplete}
+            fastMode={fastMode}
+            onToggleFastMode={() => handleUpdatePreferences({ fastMode: !fastMode })}
+            reducedMotion={reducedMotion}
+            spinPoints={spinPoints}
+            energyPoints={energyPoints}
+            pendingFeatures={pendingFeatures}
+            activeBonus={activeBonus}
+            onOpenWheel={() => setShowWheel(true)}
+            betPerBallCents={betPerBallCents}
+            ballCount={ballCount}
+            onChangeBet={setBetPerBallCents}
+            onChangeBallCount={setBallCount}
+            isDropping={isDropping}
+            onDrop={handleDrop}
+            onBonusDrop={handleBonusDrop}
+            autoDropCount={autoDropCount}
+            onStartAutoDrop={(count) => {
+              if (isDropping || activeBonus || pendingFeatures.some((f) => f.type === 'BONUS')) {
+                handleDrop();
+                return;
+              }
+              autoDropSessionRoundsRef.current = [];
+              isAutoSessionRef.current = true;
+              autoDropCountRef.current = count;
+              setAutoDropCount(count);
+              handleDrop();
+            }}
+          onStopAutoDrop={() => stopAutoDrop(!isDropping)}
+            lastWinCents={lastWinCents}
+            currencySymbol="₹"
+          />
+        </main>
+      </div>
 
       {/* 3. MODAL DIALOGS */}
       <WheelModal
