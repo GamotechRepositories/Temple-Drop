@@ -90,6 +90,7 @@ export const App = () => {
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showIntro, setShowIntro] = useState(() => shouldShowTempleIntro(false));
+  const [introAssetsReady, setIntroAssetsReady] = useState(false);
   const gameShellRef = useRef(null);
   const wasShowingIntroRef = useRef(showIntro);
 
@@ -445,6 +446,7 @@ export const App = () => {
       {showIntro && (
         <TempleIntro
           reducedMotion={reducedMotion}
+          onAssetsReady={() => setIntroAssetsReady(true)}
           onComplete={handleIntroComplete}
         />
       )}
@@ -469,7 +471,7 @@ export const App = () => {
         />
 
         {/* 2. MAIN GAME STAGE VIEWPORT */}
-        <main className={`relative flex-1 flex flex-col w-full overflow-hidden ${showIntro ? 'animate-game-back-to-forward' : ''}`}>
+        <main className={`relative flex-1 flex flex-col w-full overflow-hidden ${showIntro && introAssetsReady ? 'animate-game-back-to-forward' : showIntro ? 'scale-[0.86]' : ''}`}>
           {dropError && (
             <div className="absolute top-3 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl bg-rose-950/95 border border-rose-500 text-rose-200 text-xs sm:text-sm font-bold shadow-2xl flex items-center space-x-2 animate-bounce">
               <span>{dropError}</span>
@@ -511,7 +513,7 @@ export const App = () => {
               setAutoDropCount(count);
               handleDrop();
             }}
-          onStopAutoDrop={() => stopAutoDrop(!isDropping)}
+            onStopAutoDrop={() => stopAutoDrop(!isDropping)}
             lastWinCents={lastWinCents}
             currencySymbol="₹"
           />

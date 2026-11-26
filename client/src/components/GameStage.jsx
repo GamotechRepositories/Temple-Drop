@@ -38,6 +38,17 @@ export const GameStage = ({
   // Flash states for the 15 chutes and slots
   const [activeSlotFlashes, setActiveSlotFlashes] = useState({});
 
+  const handleImageRetry = (baseSrc) => (e) => {
+    const img = e.currentTarget;
+    const retries = Number(img.dataset.retries || '0');
+    if (retries < 2) {
+      img.dataset.retries = String(retries + 1);
+      setTimeout(() => {
+        img.src = `${baseSrc}?retry=${retries + 1}`;
+      }, 500 * (retries + 1));
+    }
+  };
+
   const handleBallLand = (slotIndex) => {
     setActiveSlotFlashes((prev) => ({ ...prev, [slotIndex]: true }));
     // Auto-clear flash after 250ms
@@ -65,12 +76,18 @@ export const GameStage = ({
         <img
           src="/images/bg-mobile.webp"
           alt="Egyptian Desert Night Mobile"
+          decoding="async"
+          fetchPriority="high"
+          onError={handleImageRetry('/images/bg-mobile.webp')}
           className="block sm:hidden w-full h-full object-cover object-center pointer-events-none select-none"
         />
         {/* Desktop / Tablet View Background (>=640px) */}
         <img
           src="/images/bg-jungle.webp"
           alt="Egyptian Desert Night Desktop"
+          decoding="async"
+          fetchPriority="high"
+          onError={handleImageRetry('/images/bg-jungle.webp')}
           className="hidden sm:block w-full h-full object-fill pointer-events-none select-none"
         />
         {/* Background Atmospheric Flying Animations (Birds, Embers, Shooting Star) */}
@@ -89,6 +106,9 @@ export const GameStage = ({
           <img
             src="/images/temple-frame.webp"
             alt="Temple Shrine Frame"
+            decoding="sync"
+            fetchPriority="high"
+            onError={handleImageRetry('/images/temple-frame.webp')}
             className="absolute inset-0 w-full h-full object-fill pointer-events-none z-20 drop-shadow-[0_12px_28px_rgba(0,0,0,0.85)]"
           />
 

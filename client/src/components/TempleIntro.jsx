@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useCallback, useState } from 'react';
 
 const INTRO_SEEN_KEY = 'temple_drop_intro_seen';
 const FALLBACK_TIMEOUT_MS = 2950;
-const ASSET_WAIT_TIMEOUT_MS = 2500;
+const ASSET_WAIT_TIMEOUT_MS = 8000;
 
 const GOLD_PARTICLES = [
   { id: 1, top: '20%', delay: '460ms', dx: '-26px', dy: '-38px', size: 6 },
@@ -95,7 +95,7 @@ const SandstoneDoorHalf = ({ side, animStyle }) => {
   );
 };
 
-export const TempleIntro = ({ reducedMotion = false, onComplete }) => {
+export const TempleIntro = ({ reducedMotion = false, onAssetsReady, onComplete }) => {
   const completedRef = useRef(false);
   const [assetsReady, setAssetsReady] = useState(false);
 
@@ -108,43 +108,71 @@ export const TempleIntro = ({ reducedMotion = false, onComplete }) => {
     }
   }, [onComplete]);
 
-  // Wait for door & scarab images on slow networks (capped at ASSET_WAIT_TIMEOUT_MS)
+  // Wait for door, scarab, and board frame images to load & decode on slow networks
   useEffect(() => {
     let cancelled = false;
-    const urls = ['/images/temple-doors.jpg', '/images/temple-scarab.png'];
-    let loadedCount = 0;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+    const urls = [
+      '/images/temple-doors.jpg',
+      '/images/temple-scarab.png',
+      '/images/temple-frame.webp',
+      isMobile ? '/images/bg-mobile.webp' : '/images/bg-jungle.webp',
+    ];
+    const settled = new Set();
+    const timers = [];
 
     const finishReady = () => {
-      if (!cancelled) setAssetsReady(true);
+      if (cancelled) return;
+      setAssetsReady(true);
+      if (onAssetsReady) onAssetsReady();
     };
 
     const maxWaitTimer = setTimeout(finishReady, ASSET_WAIT_TIMEOUT_MS);
 
-    const loaders = urls.map((src) => {
+    const loadWithRetry = (src, attempt = 0) => {
+      if (cancelled || settled.has(src)) return;
       const img = new Image();
-      const markOne = () => {
-        loadedCount += 1;
-        if (loadedCount >= urls.length) {
+
+      const markDone = () => {
+        if (cancelled || settled.has(src)) return;
+        settled.add(src);
+        if (settled.size >= urls.length) {
           clearTimeout(maxWaitTimer);
           finishReady();
         }
       };
-      img.onload = markOne;
-      img.onerror = markOne;
-      img.src = src;
-      if (img.complete) markOne();
-      return img;
-    });
+
+      const handleSuccess = () => {
+        if (typeof img.decode === 'function') {
+          img.decode().catch(() => {}).finally(markDone);
+        } else {
+          markDone();
+        }
+      };
+
+      img.onload = handleSuccess;
+      img.onerror = () => {
+        if (attempt < 1 && !cancelled) {
+          const retryTimer = setTimeout(() => loadWithRetry(src, attempt + 1), 450);
+          timers.push(retryTimer);
+        } else {
+          markDone();
+        }
+      };
+      img.src = attempt === 0 ? src : `${src}?retry=${attempt}`;
+      if (img.complete && img.naturalWidth > 0) {
+        handleSuccess();
+      }
+    };
+
+    urls.forEach((src) => loadWithRetry(src));
 
     return () => {
       cancelled = true;
       clearTimeout(maxWaitTimer);
-      loaders.forEach((img) => {
-        img.onload = null;
-        img.onerror = null;
-      });
+      timers.forEach((t) => clearTimeout(t));
     };
-  }, []);
+  }, [onAssetsReady]);
 
   // Immediately exit if Reduced Motion preference or OS reduced motion is enabled
   useEffect(() => {
