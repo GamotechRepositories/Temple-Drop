@@ -1,0 +1,4 @@
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_TEST_URI:mongodb://localhost:27017/temple_drop_test?replicaSet=rs0}

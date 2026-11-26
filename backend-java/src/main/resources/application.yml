@@ -1,0 +1,23 @@
+server:
+  port: ${PORT:5000}
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: temple-drop-backend
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/temple_drop?replicaSet=rs0}
+      auto-index-creation: false
+  web:
+    resources:
+      static-locations: file:../client/dist/,classpath:/static/
+
+app:
+  env: ${NODE_ENV:development}
+  cors-origin: ${CORS_ORIGIN:http://localhost:5173}
+  cookie-secure: ${COOKIE_SECURE:false}
+  csrf-secret: ${CSRF_SECRET:temple-drop-csrf-fallback-secret-2026}
+  session-secret: ${SESSION_SECRET:temple_drop_jwt_and_session_secret_32_characters_min!}
+  serve-static: ${SERVE_CLIENT_DIST:true}

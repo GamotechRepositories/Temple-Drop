@@ -3,15 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "shared",
-    "server",
     "client"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev -w server\" \"npm run dev -w client\"",
-    "build": "npm run build -w client",
-    "test": "npm run test -w server && npm run test -w client",
-    "start": "npm run start -w server"
+    "dev": "concurrently \"cd backend-java && .\\mvnw.cmd spring-boot:run\" \"npm run dev -w client\"",
+    "build": "npm run build -w client && cd backend-java && .\\mvnw.cmd package -DskipTests",
+    "test": "cd backend-java && .\\mvnw.cmd test && cd .. && npm run test -w client",
+    "start": "cd backend-java && .\\mvnw.cmd spring-boot:run"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

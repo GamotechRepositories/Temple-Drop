@@ -11,7 +11,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@temple-drop/shared': path.resolve(__dirname, '../shared/src'),
+      '@temple-drop/shared': path.resolve(__dirname, './src/shared'),
     },
   },
   server: {
