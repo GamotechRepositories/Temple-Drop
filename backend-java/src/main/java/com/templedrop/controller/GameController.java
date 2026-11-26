@@ -1,10 +1,14 @@
 package com.templedrop.controller;
 
 import com.templedrop.config.GameConfig;
+import com.templedrop.dto.AdminDtos;
 import com.templedrop.dto.GameDtos;
+import com.templedrop.model.GameConfigVersionDocument;
 import com.templedrop.security.AuthenticatedUser;
+import com.templedrop.service.GameConfigService;
 import com.templedrop.service.GameService;
 import com.templedrop.service.IdempotencyService;
+import com.templedrop.service.ProviderWalletBridgeService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,14 +29,24 @@ import java.util.Map;
 public class GameController {
     private final GameService gameService;
     private final IdempotencyService idempotencyService;
+    private final ProviderWalletBridgeService providerWalletBridgeService;
+    private final GameConfigService gameConfigService;
 
-    public GameController(GameService gameService, IdempotencyService idempotencyService) {
+    public GameController(
+        GameService gameService,
+        IdempotencyService idempotencyService,
+        ProviderWalletBridgeService providerWalletBridgeService,
+        GameConfigService gameConfigService
+    ) {
         this.gameService = gameService;
         this.idempotencyService = idempotencyService;
+        this.providerWalletBridgeService = providerWalletBridgeService;
+        this.gameConfigService = gameConfigService;
     }
 
     @GetMapping("/config")
     public Map<String, Object> getConfig() {
+        GameConfigVersionDocument live = gameConfigService.getPublishedConfig();
         Map<String, Object> config = new LinkedHashMap<>();
         config.put("TITLE", GameConfig.TITLE);
         config.put("CURRENCY_SYMBOL", GameConfig.CURRENCY_SYMBOL);
@@ -41,23 +55,34 @@ public class GameController {
         config.put("STEPS_COUNT", GameConfig.STEPS_COUNT);
         config.put("BUMPER_PEGS", GameConfig.BUMPER_PEGS);
         config.put("INITIAL_BALANCE_CENTS", GameConfig.INITIAL_BALANCE_CENTS);
-        config.put("MIN_BET_CENTS", GameConfig.MIN_BET_CENTS);
-        config.put("MAX_TOTAL_BET_CENTS", GameConfig.MAX_TOTAL_BET_CENTS);
-        config.put("PAYOUT_CAP_CENTS", GameConfig.PAYOUT_CAP_CENTS);
-        config.put("BET_PER_BALL_OPTIONS_CENTS", GameConfig.BET_PER_BALL_OPTIONS_CENTS);
-        config.put("BALLS_PER_DROP_OPTIONS", GameConfig.BALLS_PER_DROP_OPTIONS);
-        config.put("DEFAULT_BET_PER_BALL_CENTS", GameConfig.DEFAULT_BET_PER_BALL_CENTS);
-        config.put("DEFAULT_BALLS_PER_DROP", GameConfig.DEFAULT_BALLS_PER_DROP);
+        config.put("GAME_ENABLED", live.isGameEnabled());
+        config.put("CONFIG_VERSION", live.getVersion());
+        config.put("MIN_BET_CENTS", live.getMinBetCents());
+        config.put("MAX_TOTAL_BET_CENTS", live.getMaxTotalBetCents());
+        config.put("PAYOUT_CAP_CENTS", live.getPayoutCapCents());
+        config.put("BET_PER_BALL_OPTIONS_CENTS", live.getBetPerBallOptionsCents());
+        config.put("BALLS_PER_DROP_OPTIONS", live.getBallsPerDropOptions());
+        config.put("DEFAULT_BET_PER_BALL_CENTS", live.getDefaultBetPerBallCents());
+        config.put("DEFAULT_BALLS_PER_DROP", live.getDefaultBallsPerDrop());
         config.put("ENERGY_PER_BUMPER_HIT", GameConfig.ENERGY_PER_BUMPER_HIT);
         config.put("ENERGY_THRESHOLD_FOR_BONUS", GameConfig.ENERGY_THRESHOLD_FOR_BONUS);
         config.put("BONUS_INITIAL_BALLS", GameConfig.BONUS_INITIAL_BALLS);
         config.put("BONUS_RETRIGGER_BALLS", GameConfig.BONUS_RETRIGGER_BALLS);
         config.put("BONUS_MAX_TOTAL_BALLS", GameConfig.BONUS_MAX_TOTAL_BALLS);
-        config.put("SPIN_POINTS_PER_HIT", GameConfig.SPIN_POINTS_PER_HIT);
-        config.put("SPIN_POINTS_THRESHOLD", GameConfig.SPIN_POINTS_THRESHOLD);
-        config.put("SLOTS", GameConfig.SLOTS);
-        config.put("WHEEL_OUTCOMES", GameConfig.WHEEL_OUTCOMES);
-        config.put("AUTO_DROP_COUNTS", GameConfig.AUTO_DROP_COUNTS);
+        config.put("FREE_SPIN_ENABLED", live.isFreeSpinEnabled());
+        config.put("SPIN_POINTS_PER_HIT", live.getSpinPointsPerHit());
+        config.put("SPIN_POINTS_THRESHOLD", live.getSpinPointsThreshold());
+        config.put("CARRY_FORWARD_POINTS", live.isCarryForwardPoints());
+        config.put("SLOTS", live.getSlots().stream()
+            .map(s -> new GameConfig.SlotDef(s.getIndex(), s.getLabel(), s.getNum(), s.getDen(), s.isSpin(), s.getColor()))
+            .toList());
+        config.put("WHEEL_OUTCOMES", live.getWheelOutcomes().stream()
+            .map(w -> new GameConfig.WheelOutcomeDef(
+                w.getId(), w.getLabel(), w.getWedgeLabel(), w.getNum(), w.getDen(), false, Math.max(1, w.getWeightBps() / 100), w.getColor()
+            ))
+            .toList());
+        config.put("AUTO_DROP_COUNTS", live.getAutoDropCounts());
+        config.put("MAX_AUTO_DROP_COUNT", live.getMaxAutoDropCount());
         config.put("AVATARS", GameConfig.AVATARS);
 
         Map<String, Object> mathDoc = new LinkedHashMap<>();
@@ -166,5 +191,26 @@ public class GameController {
         @PathVariable String roundId
     ) {
         return gameService.getRoundDetail(authUser.userObjectId(), roundId);
+    }
+
+    @GetMapping("/provider-config")
+    public AdminDtos.PublicProviderConfigResponse getProviderConfig() {
+        return providerWalletBridgeService.getActivePublicConfig();
+    }
+
+    @GetMapping("/provider/balance")
+    public Map<String, Object> getProviderBalance(
+        @RequestParam String sessionToken,
+        @RequestParam(required = false) String providerCode
+    ) {
+        return providerWalletBridgeService.getBalance(sessionToken, providerCode);
+    }
+
+    @GetMapping("/provider/profile")
+    public Map<String, Object> getProviderProfile(
+        @RequestParam String sessionToken,
+        @RequestParam(required = false) String providerCode
+    ) {
+        return providerWalletBridgeService.getPlayerProfile(sessionToken, providerCode);
     }
 }

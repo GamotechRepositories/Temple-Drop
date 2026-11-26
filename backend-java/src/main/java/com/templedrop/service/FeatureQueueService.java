@@ -2,6 +2,7 @@ package com.templedrop.service;
 
 import com.templedrop.config.GameConfig;
 import com.templedrop.model.ActiveBonusDocument;
+import com.templedrop.model.GameConfigVersionDocument;
 import com.templedrop.model.GameStateDocument;
 import com.templedrop.model.PendingFeatureDocument;
 import com.templedrop.repository.ActiveBonusRepository;
@@ -77,16 +78,35 @@ public class FeatureQueueService {
         int spinPointsGained,
         int bumperHitsGained
     ) {
+        return processPaidDropFeatures(userId, roundId, betPerBallCents, spinPointsGained, bumperHitsGained, null);
+    }
+
+    public PaidDropFeatureResult processPaidDropFeatures(
+        ObjectId userId,
+        String roundId,
+        long betPerBallCents,
+        int spinPointsGained,
+        int bumperHitsGained,
+        GameConfigVersionDocument cfg
+    ) {
         GameStateDocument state = getGameState(userId);
 
-        int totalSpin = state.getSpinPoints() + spinPointsGained;
-        int earnedSpins = totalSpin / GameConfig.SPIN_POINTS_THRESHOLD;
-        int remainingSpin = totalSpin % GameConfig.SPIN_POINTS_THRESHOLD;
+        boolean freeSpinEnabled = cfg == null || cfg.isFreeSpinEnabled();
+        int threshold = cfg != null && cfg.getSpinPointsThreshold() > 0
+            ? cfg.getSpinPointsThreshold()
+            : GameConfig.SPIN_POINTS_THRESHOLD;
+        boolean carryForward = cfg == null || cfg.isCarryForwardPoints();
+
+        int earnedSpins = 0;
+        if (freeSpinEnabled) {
+            int totalSpin = state.getSpinPoints() + spinPointsGained;
+            earnedSpins = totalSpin / threshold;
+            int remainingSpin = carryForward ? (totalSpin % threshold) : (earnedSpins > 0 ? 0 : totalSpin);
+            state.setSpinPoints(remainingSpin);
+        }
 
         int energyGained = bumperHitsGained * GameConfig.ENERGY_PER_BUMPER_HIT;
         int totalEnergy = state.getEnergyPoints() + energyGained;
-
-        state.setSpinPoints(remainingSpin);
         state.setEnergyPoints(totalEnergy % GameConfig.ENERGY_THRESHOLD_FOR_BONUS);
         gameStateRepository.save(state);
 
@@ -99,6 +119,9 @@ public class FeatureQueueService {
                 spinFeature.setType("WHEEL_SPIN");
                 spinFeature.setStatus("PENDING");
                 spinFeature.setBetPerBallCents(betPerBallCents);
+                if (cfg != null) {
+                    spinFeature.setConfigVersion(cfg.getVersion());
+                }
                 spinFeature.setOrder(currentOrder++);
                 pendingFeatureRepository.save(spinFeature);
             }

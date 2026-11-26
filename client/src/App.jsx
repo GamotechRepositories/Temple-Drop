@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { GAME_CONFIG } from '@temple-drop/shared';
 import { api } from './api/client.js';
+import { providerSdkBridge } from './api/providerSdk.js';
 import { soundManager } from './audio/soundManager.js';
 import { Header } from './components/Header.jsx';
 import { GameStage } from './components/GameStage.jsx';
@@ -70,6 +71,10 @@ export const App = () => {
       });
       setShowBetResult(true);
     }
+  }, []);
+
+  useEffect(() => {
+    providerSdkBridge.initIfPresent();
   }, []);
 
   useEffect(() => {
@@ -220,6 +225,10 @@ export const App = () => {
 
     try {
       const dropRes = await api.postDrop(betPerBallCents, ballCount);
+      providerSdkBridge.notifyRoundStart({
+        roundId: dropRes.roundId,
+        betAmount: totalBetCents / 100,
+      });
       pendingDropSettlementRef.current = dropRes;
       setBallsToAnimate(dropRes.balls);
     } catch (err) {
@@ -330,6 +339,15 @@ export const App = () => {
     if (pendingDropSettlementRef.current) {
       const data = pendingDropSettlementRef.current;
       pendingDropSettlementRef.current = null;
+
+      if (data.roundId) {
+        const payoutCredits = (data.grossPayoutCents ?? 0) / 100;
+        providerSdkBridge.notifyRoundEnd({
+          roundId: data.roundId,
+          payout: payoutCredits,
+          result: payoutCredits > 0 ? 'WIN' : 'LOSS',
+        });
+      }
 
       if (data.walletBalanceCents !== undefined) {
         setWallet((prev) => ({ ...prev, balanceCents: data.walletBalanceCents }));

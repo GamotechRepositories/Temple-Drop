@@ -1,6 +1,7 @@
 package com.templedrop.engine;
 
 import com.templedrop.config.GameConfig;
+import com.templedrop.model.GameConfigVersionDocument;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -217,6 +218,166 @@ public class GameEngine {
 
         return new WheelSpinResult(
             selectedOutcome,
+            rawPayoutCents,
+            creditedPayoutCents,
+            payoutCapReached,
+            newRoundGrossWinCents,
+            angleTargetDegrees
+        );
+    }
+
+    public DropResult processDrop(
+        long betPerBallCents,
+        int ballCount,
+        long currentRoundGrossWinCents,
+        boolean isBonusRound,
+        GameConfigVersionDocument cfg
+    ) {
+        if (cfg == null) {
+            return processDrop(betPerBallCents, ballCount, currentRoundGrossWinCents, isBonusRound);
+        }
+        List<GameConfigVersionDocument.SlotConfig> slots = cfg.getSlots();
+        long payoutCap = cfg.getPayoutCapCents() > 0 ? cfg.getPayoutCapCents() : GameConfig.PAYOUT_CAP_CENTS;
+        int spinPointsPerHit = cfg.isFreeSpinEnabled() ? Math.max(0, cfg.getSpinPointsPerHit()) : 0;
+
+        List<BallOutcome> balls = new ArrayList<>(ballCount);
+        long boardGrossPayoutCents = 0L;
+        long boardCreditedPayoutCents = 0L;
+        int spinPointsEarned = 0;
+        int bumperHitsTotal = 0;
+        long runningGrossWinCents = currentRoundGrossWinCents;
+        boolean payoutCapReached = runningGrossWinCents >= payoutCap;
+
+        for (int i = 0; i < ballCount; i++) {
+            BallPath path = generateBallPath();
+            GameConfigVersionDocument.SlotConfig slot = slots.get(path.slotIndex());
+            bumperHitsTotal += path.bumperHits().size();
+
+            long rawPayout = 0L;
+            boolean isSpin = false;
+
+            if (slot.isSpin()) {
+                isSpin = true;
+                if (!isBonusRound) {
+                    spinPointsEarned += spinPointsPerHit;
+                }
+            } else {
+                rawPayout = GameConfig.calculateSlotPayoutCents(betPerBallCents, slot.getNum(), slot.getDen());
+            }
+
+            boardGrossPayoutCents = Math.addExact(boardGrossPayoutCents, rawPayout);
+
+            long creditedPayout;
+            if (payoutCapReached) {
+                creditedPayout = 0L;
+            } else if (runningGrossWinCents + rawPayout >= payoutCap) {
+                creditedPayout = Math.max(0L, payoutCap - runningGrossWinCents);
+                runningGrossWinCents = payoutCap;
+                payoutCapReached = true;
+            } else {
+                creditedPayout = rawPayout;
+                runningGrossWinCents = Math.addExact(runningGrossWinCents, creditedPayout);
+            }
+
+            boardCreditedPayoutCents = Math.addExact(boardCreditedPayoutCents, creditedPayout);
+
+            balls.add(new BallOutcome(
+                i,
+                path.steps(),
+                path.visitedPegs(),
+                path.bumperHits(),
+                path.slotIndex(),
+                slot.getLabel(),
+                isSpin,
+                rawPayout,
+                creditedPayout
+            ));
+        }
+
+        return new DropResult(
+            balls,
+            boardGrossPayoutCents,
+            boardCreditedPayoutCents,
+            payoutCapReached,
+            spinPointsEarned,
+            bumperHitsTotal,
+            runningGrossWinCents
+        );
+    }
+
+    public WheelSpinResult spinWheel(
+        long betPerBallCents,
+        long currentRoundGrossWinCents,
+        GameConfigVersionDocument cfg
+    ) {
+        if (cfg == null || cfg.getWheelOutcomes() == null || cfg.getWheelOutcomes().isEmpty()) {
+            return spinWheel(betPerBallCents, currentRoundGrossWinCents);
+        }
+        List<GameConfigVersionDocument.WheelOutcomeConfig> outcomes = cfg.getWheelOutcomes();
+        long payoutCap = cfg.getPayoutCapCents() > 0 ? cfg.getPayoutCapCents() : GameConfig.PAYOUT_CAP_CENTS;
+        int totalWeight = outcomes.stream().mapToInt(GameConfigVersionDocument.WheelOutcomeConfig::getWeightBps).sum();
+        if (totalWeight <= 0) {
+            return spinWheel(betPerBallCents, currentRoundGrossWinCents);
+        }
+
+        int rand = random.nextInt(totalWeight);
+        int cumulative = 0;
+        GameConfigVersionDocument.WheelOutcomeConfig selected = outcomes.get(0);
+        int selectedIndex = 0;
+
+        for (int i = 0; i < outcomes.size(); i++) {
+            cumulative += outcomes.get(i).getWeightBps();
+            if (rand < cumulative) {
+                selected = outcomes.get(i);
+                selectedIndex = i;
+                break;
+            }
+        }
+
+        double startDeg = 0.0;
+        for (int i = 0; i < selectedIndex; i++) {
+            startDeg += ((double) outcomes.get(i).getWeightBps() / totalWeight) * 360.0;
+        }
+        double wedgeSpan = ((double) selected.getWeightBps() / totalWeight) * 360.0;
+        double angleTargetDegrees = startDeg + wedgeSpan / 2.0;
+
+        long rawPayoutCents = 0L;
+        if (!"NO_WIN".equalsIgnoreCase(selected.getType()) && selected.getDen() > 0 && selected.getNum() > 0) {
+            rawPayoutCents = GameConfig.calculateSlotPayoutCents(
+                betPerBallCents,
+                selected.getNum(),
+                selected.getDen()
+            );
+        }
+
+        long creditedPayoutCents;
+        boolean payoutCapReached = currentRoundGrossWinCents >= payoutCap;
+        long newRoundGrossWinCents = currentRoundGrossWinCents;
+
+        if (payoutCapReached) {
+            creditedPayoutCents = 0L;
+        } else if (currentRoundGrossWinCents + rawPayoutCents >= payoutCap) {
+            creditedPayoutCents = Math.max(0L, payoutCap - currentRoundGrossWinCents);
+            newRoundGrossWinCents = payoutCap;
+            payoutCapReached = true;
+        } else {
+            creditedPayoutCents = rawPayoutCents;
+            newRoundGrossWinCents = Math.addExact(newRoundGrossWinCents, creditedPayoutCents);
+        }
+
+        GameConfig.WheelOutcomeDef def = new GameConfig.WheelOutcomeDef(
+            selected.getId(),
+            selected.getLabel(),
+            selected.getWedgeLabel(),
+            selected.getNum(),
+            selected.getDen(),
+            false,
+            Math.max(1, selected.getWeightBps() / 100),
+            selected.getColor()
+        );
+
+        return new WheelSpinResult(
+            def,
             rawPayoutCents,
             creditedPayoutCents,
             payoutCapReached,

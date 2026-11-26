@@ -24,6 +24,8 @@ public class WalletLedgerDocument {
     private long amountCents;
     private long balanceAfterCents;
     private String description;
+    private String adminId;
+    private String reason;
 
     @CreatedDate
     private Instant createdAt;
@@ -51,6 +53,12 @@ public class WalletLedgerDocument {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public String getAdminId() { return adminId; }
+    public void setAdminId(String adminId) { this.adminId = adminId; }
+
+    public String getReason() { return reason; }
+    public void setReason(String reason) { this.reason = reason; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

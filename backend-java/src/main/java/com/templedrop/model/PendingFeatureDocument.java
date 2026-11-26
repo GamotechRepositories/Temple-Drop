@@ -32,6 +32,7 @@ public class PendingFeatureDocument {
     private int order = 0;
 
     private Map<String, Object> metadata;
+    private Integer configVersion;
     private Instant resolvedAt;
 
     @CreatedDate
@@ -63,6 +64,9 @@ public class PendingFeatureDocument {
 
     public Map<String, Object> getMetadata() { return metadata; }
     public void setMetadata(Map<String, Object> metadata) { this.metadata = metadata; }
+
+    public Integer getConfigVersion() { return configVersion; }
+    public void setConfigVersion(Integer configVersion) { this.configVersion = configVersion; }
 
     public Instant getResolvedAt() { return resolvedAt; }
     public void setResolvedAt(Instant resolvedAt) { this.resolvedAt = resolvedAt; }

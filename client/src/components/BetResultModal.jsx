@@ -196,221 +196,233 @@ export const BetResultModal = ({ isOpen, onClose, resultData }) => {
 
         {isAutoSummary ? (
           <>
-            {/* Top: Total Summary Across All Auto Drop Rounds */}
-            <div className="bg-[#080d18] border border-slate-800 rounded-2xl p-3.5 mb-3 shadow-inner">
-              <div className="text-[10px] uppercase font-bold text-amber-300 tracking-wider mb-2 border-b border-slate-800 pb-1">
+            {/* Top: Total Auto Drop Summary Table */}
+            <div className="rounded-xl border border-slate-800 bg-[#080d18]/90 overflow-hidden mb-3">
+              <div className="px-3 py-1.5 bg-[#0b1322] border-b border-slate-800 text-[10px] uppercase font-bold text-amber-300 tracking-wider">
                 Total Auto Drop Summary
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="flex flex-col bg-[#0f172a]/60 p-2 rounded-xl border border-slate-800/80">
-                  <span className="text-[10px] text-slate-400 uppercase">Rounds Played</span>
-                  <span className="font-mono font-bold text-slate-200">
-                    {summaryTotals.roundsCount} Rounds
-                  </span>
-                </div>
-                <div className="flex flex-col bg-[#0f172a]/60 p-2 rounded-xl border border-slate-800/80">
-                  <span className="text-[10px] text-slate-400 uppercase">Total Wagered</span>
-                  <span className="font-mono font-bold text-slate-200">
-                    {centsToCredits(summaryTotals.totalWager)} {GAME_CONFIG.CURRENCY_SYMBOL}
-                  </span>
-                </div>
-                <div className="flex flex-col bg-[#0f172a]/60 p-2 rounded-xl border border-slate-800/80">
-                  <span className="text-[10px] text-slate-400 uppercase">Total Payout</span>
-                  <span className="font-mono font-bold text-emerald-300">
-                    {centsToCredits(summaryTotals.totalGross)} {GAME_CONFIG.CURRENCY_SYMBOL}
-                  </span>
-                </div>
-                <div className="flex flex-col bg-[#0f172a]/60 p-2 rounded-xl border border-slate-800/80">
-                  <span className="text-[10px] text-slate-400 uppercase">New Balance</span>
-                  <span className="font-mono font-bold text-amber-300">
-                    {centsToCredits(summaryTotals.finalBalance)} {GAME_CONFIG.CURRENCY_SYMBOL}
-                  </span>
-                </div>
-              </div>
+              <table className="w-full text-xs">
+                <tbody className="divide-y divide-slate-800/70">
+                  <tr>
+                    <td className="px-3 py-1.5 text-slate-400">Rounds Played</td>
+                    <td className="px-3 py-1.5 text-right font-mono font-bold text-slate-200">
+                      {summaryTotals.roundsCount} Rounds
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-1.5 text-slate-400">Total Wagered</td>
+                    <td className="px-3 py-1.5 text-right font-mono font-bold text-slate-200">
+                      {centsToCredits(summaryTotals.totalWager)} {GAME_CONFIG.CURRENCY_SYMBOL}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-1.5 text-slate-400">Total Payout</td>
+                    <td className="px-3 py-1.5 text-right font-mono font-bold text-emerald-300">
+                      {centsToCredits(summaryTotals.totalGross)} {GAME_CONFIG.CURRENCY_SYMBOL}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-1.5 text-slate-400">New Balance</td>
+                    <td className="px-3 py-1.5 text-right font-mono font-bold text-amber-300">
+                      {centsToCredits(summaryTotals.finalBalance)} {GAME_CONFIG.CURRENCY_SYMBOL}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
-            {/* Bottom: Each Individual Bet Summary */}
-            <div className="mb-3.5">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1.5">
+            {/* Bottom: Each Individual Bet Table */}
+            <div className="rounded-xl border border-slate-800 bg-[#080d18]/90 overflow-hidden mb-2">
+              <div className="px-3 py-1.5 bg-[#0b1322] border-b border-slate-800 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
                 Each Bet Details ({summaryTotals.roundsCount})
-              </span>
-              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                {autoDropRounds.map((r, idx) => {
-                  const rNet = r.netPayoutCents ?? ((r.grossPayoutCents || 0) - (r.totalBetCents || 0));
-                  const rWin = rNet >= 0;
-                  return (
-                    <div
-                      key={r.roundId || idx}
-                      className="bg-[#0b1426] border border-slate-800 rounded-xl p-2.5 text-xs space-y-1"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-bold text-amber-300">Bet #{idx + 1}</span>
-                        <div className="inline-flex items-center space-x-1 min-w-0 font-mono text-[10px] text-slate-400">
-                          <span className="truncate max-w-[140px]">ID: {r.roundId}</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              soundManager.playButtonClick();
-                              copyText(r.roundId);
-                              setCopiedId(r.roundId);
-                              setTimeout(() => setCopiedId(null), 1500);
-                            }}
-                            title={`Copy Bet ID: ${r.roundId}`}
-                            className="p-0.5 text-slate-400 hover:text-amber-300 transition-colors shrink-0"
-                            aria-label="Copy Bet ID"
-                          >
-                            {copiedId === r.roundId ? (
-                              <Check className="w-3 h-3 text-emerald-400" />
-                            ) : (
-                              <Copy className="w-3 h-3" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-400">
-                          {r.ballCount} balls • Bet: {centsToCredits(r.totalBetCents)} {GAME_CONFIG.CURRENCY_SYMBOL}
-                        </span>
-                        <div className="flex items-center space-x-2 font-mono font-bold">
-                          <span className="text-slate-200">
-                            Win: +{centsToCredits(r.grossPayoutCents)} {GAME_CONFIG.CURRENCY_SYMBOL}
-                          </span>
-                          <span className={rWin ? 'text-emerald-400' : 'text-rose-400'}>
-                            ({rWin ? '+' : ''}{centsToCredits(rNet)} {GAME_CONFIG.CURRENCY_SYMBOL})
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+              </div>
+              <div className="max-h-44 overflow-y-auto">
+                <table className="w-full text-left text-[11px]">
+                  <thead className="bg-[#0b1322]/70 text-slate-400 border-b border-slate-800 sticky top-0">
+                    <tr>
+                      <th className="px-2.5 py-1.5 font-semibold">Bet</th>
+                      <th className="px-2.5 py-1.5 font-semibold text-right">Wager</th>
+                      <th className="px-2.5 py-1.5 font-semibold text-right">Win</th>
+                      <th className="px-2.5 py-1.5 font-semibold text-right">Net</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {autoDropRounds.map((r, idx) => {
+                      const rNet = r.netPayoutCents ?? ((r.grossPayoutCents || 0) - (r.totalBetCents || 0));
+                      const rWin = rNet >= 0;
+                      return (
+                        <tr key={r.roundId || idx}>
+                          <td className="px-2.5 py-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-amber-300">#{idx + 1}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  soundManager.playButtonClick();
+                                  copyText(r.roundId);
+                                  setCopiedId(r.roundId);
+                                  setTimeout(() => setCopiedId(null), 1500);
+                                }}
+                                title={`Copy Bet ID: ${r.roundId}`}
+                                className="text-slate-500 hover:text-amber-300"
+                                aria-label="Copy Bet ID"
+                              >
+                                {copiedId === r.roundId ? (
+                                  <Check className="w-3 h-3 text-emerald-400" />
+                                ) : (
+                                  <Copy className="w-3 h-3" />
+                                )}
+                              </button>
+                            </div>
+                          </td>
+                          <td className="px-2.5 py-1.5 text-right font-mono text-slate-300">
+                            {centsToCredits(r.totalBetCents)}
+                          </td>
+                          <td className="px-2.5 py-1.5 text-right font-mono text-slate-200">
+                            {centsToCredits(r.grossPayoutCents)}
+                          </td>
+                          <td className={`px-2.5 py-1.5 text-right font-mono font-bold ${rWin ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {rWin ? '+' : ''}{centsToCredits(rNet)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
           </>
         ) : (
           <>
-        {/* Bet Details Grid (4 key stats) */}
-        <div className="bg-[#080d18]/90 border border-slate-800 rounded-2xl p-2.5 sm:p-3 shadow-inner">
-          <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2 flex items-center justify-between gap-2 border-b border-slate-800 pb-1">
-            <span className="shrink-0">Round Specifications</span>
-            <div className="inline-flex items-center space-x-1.5 min-w-0 font-mono text-[10px] text-slate-400 normal-case">
-              <span className="truncate">ID: {roundId}</span>
-              <button
-                type="button"
-                onClick={() => {
-                  soundManager.playButtonClick();
-                  copyText(roundId);
-                  setCopiedId(roundId);
-                  setTimeout(() => setCopiedId(null), 1500);
-                }}
-                title={`Copy Bet ID: ${roundId}`}
-                className="p-0.5 text-slate-400 hover:text-amber-300 transition-colors shrink-0"
-                aria-label="Copy Bet ID"
-              >
-                {copiedId === roundId ? (
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-1.5 text-xs">
-            <div className="flex flex-col bg-[#0f172a]/70 px-2.5 py-1.5 rounded-xl border border-slate-800/80">
-              <span className="text-[9px] text-slate-400 uppercase tracking-wide">Bet Per Ball</span>
-              <span className="font-mono font-bold text-slate-200">
-                {centsToCredits(betPerBallCents)} {GAME_CONFIG.CURRENCY_SYMBOL}
-              </span>
-            </div>
-
-            <div className="flex flex-col bg-[#0f172a]/70 px-2.5 py-1.5 rounded-xl border border-slate-800/80">
-              <span className="text-[9px] text-slate-400 uppercase tracking-wide">Balls Dropped</span>
-              <span className="font-mono font-bold text-slate-200">{ballCount} Balls</span>
-            </div>
-
-            <div className="flex flex-col bg-[#0f172a]/70 px-2.5 py-1.5 rounded-xl border border-slate-800/80">
-              <span className="text-[9px] text-slate-400 uppercase tracking-wide">Total Wager</span>
-              <span className="font-mono font-bold text-slate-200">
-                {centsToCredits(totalBetCents)} {GAME_CONFIG.CURRENCY_SYMBOL}
-              </span>
-            </div>
-
-            <div className="flex flex-col bg-[#0f172a]/70 px-2.5 py-1.5 rounded-xl border border-slate-800/80">
-              <span className="text-[9px] text-slate-400 uppercase tracking-wide">Gross Payout</span>
-              <span className="font-mono font-bold text-emerald-300">
-                {centsToCredits(grossPayoutCents)} {GAME_CONFIG.CURRENCY_SYMBOL}
-              </span>
-            </div>
-          </div>
-
-          {walletBalanceCents !== undefined && (
-            <div className="mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-xs">
-              <span className="text-slate-400 font-medium">New Wallet Balance:</span>
-              <span className="font-mono font-black text-amber-300">
-                {centsToCredits(walletBalanceCents)} {GAME_CONFIG.CURRENCY_SYMBOL}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Slot Landings Breakdown */}
-        {slotBreakdown.length > 0 && (
-          <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
-              Slot Hits Distribution
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              {slotBreakdown.map((s, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center space-x-1 px-2 py-0.5 rounded-lg bg-slate-800/80 border border-slate-700/60 shadow-sm text-[11px]"
-                >
-                  <span
-                    className="font-black font-mono px-1.5 py-0.5 rounded text-[10px]"
-                    style={{ backgroundColor: s.color, color: '#000' }}
+            {/* Round Summary Table */}
+            <div className="rounded-xl border border-slate-800 bg-[#080d18]/90 overflow-hidden">
+              <div className="px-3 py-1.5 bg-[#0b1322] border-b border-slate-800 flex items-center justify-between gap-2">
+                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider shrink-0">
+                  Round Summary
+                </span>
+                <div className="inline-flex items-center space-x-1.5 min-w-0 font-mono text-[10px] text-slate-400">
+                  <span className="truncate">ID: {roundId}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      soundManager.playButtonClick();
+                      copyText(roundId);
+                      setCopiedId(roundId);
+                      setTimeout(() => setCopiedId(null), 1500);
+                    }}
+                    title={`Copy Bet ID: ${roundId}`}
+                    className="p-0.5 text-slate-400 hover:text-amber-300 transition-colors shrink-0"
+                    aria-label="Copy Bet ID"
                   >
-                    {s.label}
-                  </span>
-                  <span className="font-bold text-slate-200">× {s.count}</span>
-                  {s.totalPayoutCents > 0 && (
-                    <span className="text-[10px] font-mono text-emerald-400">
-                      ({centsToCredits(s.totalPayoutCents)})
-                    </span>
-                  )}
+                    {copiedId === roundId ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                  </button>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              </div>
 
-        {/* Spin Meter Progress Alert */}
-        {spinPointsEarned > 0 && (
-          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-2.5 py-1.5 flex items-center space-x-2 text-[11px] text-amber-300">
-            <Disc3 className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-            <span>
-              <strong>+{spinPointsEarned} Spin Point{spinPointsEarned > 1 ? 's' : ''}!</strong> ({spinPoints}/10 towards Free Wheel Spin)
-            </span>
-          </div>
-        )}
+              <table className="w-full text-xs">
+                <tbody className="divide-y divide-slate-800/70">
+                  <tr>
+                    <td className="px-3 py-1.5 text-slate-400">Bet Per Ball</td>
+                    <td className="px-3 py-1.5 text-right font-mono font-semibold text-slate-200">
+                      {centsToCredits(betPerBallCents)} {GAME_CONFIG.CURRENCY_SYMBOL}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-1.5 text-slate-400">Balls Dropped</td>
+                    <td className="px-3 py-1.5 text-right font-mono font-semibold text-slate-200">
+                      {ballCount} Balls
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-1.5 text-slate-400">Total Wager</td>
+                    <td className="px-3 py-1.5 text-right font-mono font-semibold text-slate-200">
+                      {centsToCredits(totalBetCents)} {GAME_CONFIG.CURRENCY_SYMBOL}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-1.5 text-slate-400">Gross Payout</td>
+                    <td className="px-3 py-1.5 text-right font-mono font-bold text-emerald-400">
+                      {centsToCredits(grossPayoutCents)} {GAME_CONFIG.CURRENCY_SYMBOL}
+                    </td>
+                  </tr>
+                  {walletBalanceCents !== undefined && (
+                    <tr className="bg-[#0b1322]/50">
+                      <td className="px-3 py-1.5 text-slate-300 font-medium">New Wallet Balance</td>
+                      <td className="px-3 py-1.5 text-right font-mono font-black text-amber-300">
+                        {centsToCredits(walletBalanceCents)} {GAME_CONFIG.CURRENCY_SYMBOL}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Slot Hits Table */}
+            {slotBreakdown.length > 0 && (
+              <div className="rounded-xl border border-slate-800 bg-[#080d18]/90 overflow-hidden">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#0b1322] text-[10px] uppercase text-slate-400 border-b border-slate-800">
+                    <tr>
+                      <th className="px-3 py-1.5 font-semibold">Slot</th>
+                      <th className="px-3 py-1.5 font-semibold text-right">Hits</th>
+                      <th className="px-3 py-1.5 font-semibold text-right">Payout</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {slotBreakdown.map((s, idx) => (
+                      <tr key={idx}>
+                        <td className="px-3 py-1.5">
+                          <span
+                            className="inline-block font-black font-mono px-1.5 py-0.5 rounded text-[10px]"
+                            style={{ backgroundColor: s.color, color: '#000' }}
+                          >
+                            {s.label}
+                          </span>
+                        </td>
+                        <td className="px-3 py-1.5 text-right font-mono font-semibold text-slate-200">
+                          × {s.count}
+                        </td>
+                        <td className="px-3 py-1.5 text-right font-mono font-semibold text-emerald-400">
+                          {s.totalPayoutCents > 0 ? `${centsToCredits(s.totalPayoutCents)} ${GAME_CONFIG.CURRENCY_SYMBOL}` : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Spin Meter Progress Alert */}
+            {spinPointsEarned > 0 && (
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-3 py-1.5 flex items-center space-x-2 text-[11px] text-amber-300">
+                <Disc3 className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                <span>
+                  <strong>+{spinPointsEarned} Spin Point{spinPointsEarned > 1 ? 's' : ''}!</strong> ({spinPoints}/10 towards Free Wheel Spin)
+                </span>
+              </div>
+            )}
           </>
         )}
         </div>
 
-        {/* Pinned Action Button: Play Again / Continue */}
+        {/* Pinned Action Button: Play Again / Continue (no icon) */}
         <div className="shrink-0 pt-2.5 mt-1 border-t border-slate-800/60">
           <button
             onClick={() => {
               soundManager.playButtonClick();
               onClose();
             }}
-            className="w-full py-2.5 sm:py-3 px-4 rounded-2xl font-black text-sm uppercase tracking-wider text-slate-950 transition-all transform active:scale-95 hover:brightness-110 shadow-lg flex items-center justify-center space-x-2"
+            className="w-full py-2.5 sm:py-3 px-4 rounded-2xl font-black text-sm uppercase tracking-wider text-slate-950 transition-all transform active:scale-95 hover:brightness-110 shadow-lg flex items-center justify-center"
             style={{
               background: 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)',
               border: '2px solid #fef08a',
               boxShadow: '0 4px 14px rgba(217, 119, 6, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45)',
             }}
           >
-            <Sparkles className="w-4 h-4" />
             <span>Continue / Play Again</span>
           </button>
         </div>

@@ -10,6 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@gamotech/game-sdk-client": "^1.0.0",
     "@tanstack/react-query": "^5.64.2",
     "clsx": "^2.1.1",
     "lucide-react": "^0.473.0",

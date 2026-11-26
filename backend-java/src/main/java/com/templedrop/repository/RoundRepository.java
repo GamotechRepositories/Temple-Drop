@@ -12,5 +12,7 @@ public interface RoundRepository extends MongoRepository<RoundDocument, String> 
     Optional<RoundDocument> findByRoundIdAndUserId(String roundId, ObjectId userId);
     Optional<RoundDocument> findFirstByUserIdAndTypeOrderByCreatedAtDesc(ObjectId userId, String type);
     List<RoundDocument> findByUserIdAndTypeOrderByCreatedAtDesc(ObjectId userId, String type, Pageable pageable);
+    List<RoundDocument> findByUserIdOrderByCreatedAtDesc(ObjectId userId, Pageable pageable);
+    List<RoundDocument> findByUserId(ObjectId userId);
     long countByUserIdAndType(ObjectId userId, String type);
 }

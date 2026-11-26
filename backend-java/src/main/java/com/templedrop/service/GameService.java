@@ -6,6 +6,7 @@ import com.templedrop.dto.GameDtos;
 import com.templedrop.engine.GameEngine;
 import com.templedrop.exception.ApiException;
 import com.templedrop.model.ActiveBonusDocument;
+import com.templedrop.model.GameConfigVersionDocument;
 import com.templedrop.model.GameStateDocument;
 import com.templedrop.model.PendingFeatureDocument;
 import com.templedrop.model.RoundDocument;
@@ -37,17 +38,20 @@ public class GameService {
     private final FeatureQueueService featureQueueService;
     private final RoundRepository roundRepository;
     private final ActiveBonusRepository activeBonusRepository;
+    private final GameConfigService gameConfigService;
 
     public GameService(
         WalletService walletService,
         FeatureQueueService featureQueueService,
         RoundRepository roundRepository,
-        ActiveBonusRepository activeBonusRepository
+        ActiveBonusRepository activeBonusRepository,
+        GameConfigService gameConfigService
     ) {
         this.walletService = walletService;
         this.featureQueueService = featureQueueService;
         this.roundRepository = roundRepository;
         this.activeBonusRepository = activeBonusRepository;
+        this.gameConfigService = gameConfigService;
     }
 
     public GameDtos.GameStateResponse getState(UserDocument user, ObjectId userId) {
@@ -96,31 +100,36 @@ public class GameService {
 
     @Transactional
     public GameDtos.DropResponse processDrop(ObjectId userId, GameDtos.DropRequest req) {
+        GameConfigVersionDocument cfg = gameConfigService.getPublishedConfig();
+        if (!cfg.isGameEnabled()) {
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "Game is currently paused by administrator.");
+        }
+
         long betPerBallCents = req.betPerBallCents();
         int ballCount = req.ballCount();
 
-        if (!GameConfig.BET_PER_BALL_OPTIONS_CENTS.contains(betPerBallCents)) {
-            String allowed = GameConfig.BET_PER_BALL_OPTIONS_CENTS.stream()
+        if (!cfg.getBetPerBallOptionsCents().contains(betPerBallCents)) {
+            String allowed = cfg.getBetPerBallOptionsCents().stream()
                 .map(WalletService::formatCredits)
                 .collect(Collectors.joining(", "));
             throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid bet per ball. Must be one of: " + allowed + " credits");
         }
 
-        if (!GameConfig.BALLS_PER_DROP_OPTIONS.contains(ballCount)) {
-            String allowed = GameConfig.BALLS_PER_DROP_OPTIONS.stream()
+        if (!cfg.getBallsPerDropOptions().contains(ballCount)) {
+            String allowed = cfg.getBallsPerDropOptions().stream()
                 .map(String::valueOf)
                 .collect(Collectors.joining(", "));
             throw new ApiException(HttpStatus.BAD_REQUEST, "Invalid ball count. Must be one of: " + allowed);
         }
 
         long totalBetCents = Math.multiplyExact(betPerBallCents, (long) ballCount);
-        if (totalBetCents < GameConfig.MIN_BET_CENTS || totalBetCents > GameConfig.MAX_TOTAL_BET_CENTS) {
+        if (totalBetCents < cfg.getMinBetCents() || totalBetCents > cfg.getMaxTotalBetCents()) {
             throw new ApiException(
                 HttpStatus.BAD_REQUEST,
                 String.format(
                     "Total bet must be between %s and %s credits",
-                    WalletService.formatCredits(GameConfig.MIN_BET_CENTS),
-                    WalletService.formatCredits(GameConfig.MAX_TOTAL_BET_CENTS)
+                    WalletService.formatCredits(cfg.getMinBetCents()),
+                    WalletService.formatCredits(cfg.getMaxTotalBetCents())
                 )
             );
         }
@@ -138,7 +147,7 @@ public class GameService {
 
         WalletDocument updatedWallet = walletService.debitBet(userId, totalBetCents, roundId);
 
-        GameEngine.DropResult dropResult = gameEngine.processDrop(betPerBallCents, ballCount, 0L, false);
+        GameEngine.DropResult dropResult = gameEngine.processDrop(betPerBallCents, ballCount, 0L, false, cfg);
 
         if (dropResult.boardCreditedPayoutCents() > 0) {
             updatedWallet = walletService.creditWin(
@@ -159,7 +168,8 @@ public class GameService {
             roundId,
             betPerBallCents,
             dropResult.spinPointsEarned(),
-            dropResult.bumperHitsTotal()
+            dropResult.bumperHitsTotal(),
+            cfg
         );
 
         List<RoundDocument.BallOutcomeDoc> ballDocs = dropResult.balls().stream()
@@ -183,6 +193,7 @@ public class GameService {
         roundDoc.setPayoutCapReached(dropResult.payoutCapReached());
         roundDoc.setSpinPointsEarned(dropResult.spinPointsEarned());
         roundDoc.setEnergyEarned(dropResult.bumperHitsTotal() * GameConfig.ENERGY_PER_BUMPER_HIT);
+        roundDoc.setConfigVersion(cfg.getVersion());
         roundDoc = roundRepository.save(roundDoc);
 
         List<GameDtos.FeatureDto> pendingFeatures = featureQueueService.getPendingFeatures(userId).stream()
@@ -230,7 +241,12 @@ public class GameService {
         Optional<RoundDocument> originOpt = roundRepository.findByRoundIdAndUserId(feature.getRoundId(), userId);
         long currentGross = originOpt.map(RoundDocument::getTotalGrossPayoutCents).orElse(0L);
 
-        GameEngine.WheelSpinResult wheelResult = gameEngine.spinWheel(feature.getBetPerBallCents(), currentGross);
+        Integer recordedVersion = feature.getConfigVersion();
+        GameConfigVersionDocument settlementCfg = (recordedVersion != null && recordedVersion > 0)
+            ? gameConfigService.getConfigByVersion(recordedVersion).orElseGet(gameConfigService::getPublishedConfig)
+            : gameConfigService.getPublishedConfig();
+
+        GameEngine.WheelSpinResult wheelResult = gameEngine.spinWheel(feature.getBetPerBallCents(), currentGross, settlementCfg);
         WalletDocument updatedWallet = walletService.getWallet(userId);
 
         if (wheelResult.creditedPayoutCents() > 0) {

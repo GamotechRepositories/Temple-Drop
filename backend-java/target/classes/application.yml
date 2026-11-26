@@ -22,3 +22,5 @@ app:
   csrf-secret: ${CSRF_SECRET:temple-drop-csrf-fallback-secret-2026}
   session-secret: ${SESSION_SECRET:temple_drop_jwt_and_session_secret_32_characters_min!}
   serve-static: ${SERVE_CLIENT_DIST:true}
+  admin-username: ${ADMIN_USERNAME:admin}
+  admin-password: ${ADMIN_PASSWORD:admin123}

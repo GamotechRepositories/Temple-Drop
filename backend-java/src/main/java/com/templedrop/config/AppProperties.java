@@ -12,6 +12,8 @@ public class AppProperties {
     private String csrfSecret = "temple-drop-csrf-fallback-secret-2026";
     private String sessionSecret = "temple_drop_jwt_and_session_secret_32_characters_min!";
     private boolean serveStatic = true;
+    private String adminUsername = "admin";
+    private String adminPassword = "admin123";
 
     public String getEnv() { return env; }
     public void setEnv(String env) { this.env = env; }
@@ -30,6 +32,12 @@ public class AppProperties {
 
     public boolean isServeStatic() { return serveStatic; }
     public void setServeStatic(boolean serveStatic) { this.serveStatic = serveStatic; }
+
+    public String getAdminUsername() { return adminUsername; }
+    public void setAdminUsername(String adminUsername) { this.adminUsername = adminUsername; }
+
+    public String getAdminPassword() { return adminPassword; }
+    public void setAdminPassword(String adminPassword) { this.adminPassword = adminPassword; }
 
     public boolean isProduction() {
         return "production".equalsIgnoreCase(env);

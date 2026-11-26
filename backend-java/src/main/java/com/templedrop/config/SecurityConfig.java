@@ -1,5 +1,6 @@
 package com.templedrop.config;
 
+import com.templedrop.security.AdminAuthFilter;
 import com.templedrop.security.CsrfFilter;
 import com.templedrop.security.RateLimitFilter;
 import com.templedrop.security.SessionAuthFilter;
@@ -25,17 +26,20 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
     private final SessionAuthFilter sessionAuthFilter;
+    private final AdminAuthFilter adminAuthFilter;
     private final CsrfFilter csrfFilter;
     private final RateLimitFilter rateLimitFilter;
     private final AppProperties appProperties;
 
     public SecurityConfig(
         SessionAuthFilter sessionAuthFilter,
+        AdminAuthFilter adminAuthFilter,
         CsrfFilter csrfFilter,
         RateLimitFilter rateLimitFilter,
         AppProperties appProperties
     ) {
         this.sessionAuthFilter = sessionAuthFilter;
+        this.adminAuthFilter = adminAuthFilter;
         this.csrfFilter = csrfFilter;
         this.rateLimitFilter = rateLimitFilter;
         this.appProperties = appProperties;
@@ -65,13 +69,18 @@ public class SecurityConfig {
                     "/api/auth/login",
                     "/api/auth/guest",
                     "/api/auth/logout",
-                    "/api/game/config"
+                    "/api/game/config",
+                    "/api/game/provider-config",
+                    "/api/admin/login",
+                    "/api/admin/logout"
                 ).permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
             )
             .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(sessionAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(adminAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterAfter(csrfFilter, SessionAuthFilter.class);
 
         return http.build();
@@ -84,6 +93,8 @@ public class SecurityConfig {
             appProperties.getCorsOrigin(),
             "http://localhost:5173",
             "http://127.0.0.1:5173",
+            "http://localhost:5174",
+            "http://127.0.0.1:5174",
             "*"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));

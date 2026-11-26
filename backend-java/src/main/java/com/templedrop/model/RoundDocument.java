@@ -37,6 +37,7 @@ public class RoundDocument {
     private boolean payoutCapReached = false;
     private int spinPointsEarned = 0;
     private int energyEarned = 0;
+    private Integer configVersion;
 
     @CreatedDate
     private Instant createdAt;
@@ -147,6 +148,9 @@ public class RoundDocument {
 
     public int getEnergyEarned() { return energyEarned; }
     public void setEnergyEarned(int energyEarned) { this.energyEarned = energyEarned; }
+
+    public Integer getConfigVersion() { return configVersion; }
+    public void setConfigVersion(Integer configVersion) { this.configVersion = configVersion; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
