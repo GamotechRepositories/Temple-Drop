@@ -99,7 +99,7 @@ export const GameStage = ({
       {/* ========================================================
           2. STEPPED SANDSTONE TEMPLE SHRINE (Using WebP Frame)
       ======================================================== */}
-      <div className="relative z-10 w-[99%] max-w-[min(400px,calc((100dvh-310px)*0.96))] tall-mobile-temple sm:max-w-[min(550px,calc((100vh-170px)*1.08))] my-auto flex flex-col items-center select-none">
+      <div className="relative z-10 w-[99%] max-w-[min(440px,calc((100dvh-260px)*1.04))] tall-mobile-temple sm:max-w-[min(550px,calc((100vh-170px)*1.08))] my-auto flex flex-col items-center select-none">
         {/* Frame Outer Wrapper matching aspect ratio (1024 / 595 = 1.72) */}
         <div className="relative w-full aspect-[1024/595] flex flex-col items-center justify-between">
           {/* Temple Frame WebP Image Overlaid */}

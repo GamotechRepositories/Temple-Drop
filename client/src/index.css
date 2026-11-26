@@ -417,6 +417,6 @@
     order: 2 !important;
   }
   .tall-mobile-temple {
-    max-width: min(390px, calc((100dvh - 375px) * 0.96)) !important;
+    max-width: min(440px, calc((100dvh - 320px) * 1.04)) !important;
   }
 }
