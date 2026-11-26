@@ -131,11 +131,14 @@ router.post(
         return;
       }
 
-      const pendingBonusCount = await PendingFeature.countDocuments({
-        userId: user._id,
-        type: 'BONUS',
-        status: { $in: ['PENDING', 'ACTIVE'] },
-      });
+      const [pendingBonusCount, activeBonus] = await Promise.all([
+        PendingFeature.countDocuments({
+          userId: user._id,
+          type: 'BONUS',
+          status: { $in: ['PENDING', 'ACTIVE'] },
+        }),
+        FeatureQueueService.getActiveBonus(user._id),
+      ]);
       if (pendingBonusCount > 0) {
         res.status(400).json({
           error: 'Please resolve active bonus game before dropping again.',
@@ -143,7 +146,6 @@ router.post(
         return;
       }
 
-      const activeBonus = await FeatureQueueService.getActiveBonus(user._id);
       if (activeBonus) {
         res.status(400).json({
           error: 'An active bonus game is in progress. Please complete all bonus balls first.',
@@ -153,7 +155,7 @@ router.post(
 
       const roundId = `round_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
 
-      await WalletService.debitBet(user._id, totalBetCents, roundId);
+      let updatedWallet = await WalletService.debitBet(user._id, totalBetCents, roundId);
 
       const dropResult = GameEngine.processDrop({
         betPerBallCents,
@@ -162,7 +164,6 @@ router.post(
         isBonusRound: false,
       });
 
-      let updatedWallet = await WalletService.getWallet(user._id);
       if (dropResult.boardCreditedPayoutCents > 0) {
         updatedWallet = await WalletService.creditWin(
           user._id,
@@ -201,10 +202,12 @@ router.post(
         spinPointsEarned: dropResult.spinPointsEarned,
         energyEarned: dropResult.bumperHitsTotal * GAME_CONFIG.ENERGY_PER_BUMPER_HIT,
       });
-      await roundDoc.save();
 
-      const pendingFeatures = await FeatureQueueService.getPendingFeatures(user._id);
-      const latestActiveBonus = await FeatureQueueService.getActiveBonus(user._id);
+      const [, pendingFeatures, latestActiveBonus] = await Promise.all([
+        roundDoc.save(),
+        FeatureQueueService.getPendingFeatures(user._id),
+        FeatureQueueService.getActiveBonus(user._id),
+      ]);
 
       res.json({
         roundId,

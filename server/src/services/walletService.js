@@ -73,14 +73,12 @@ export class WalletService {
       throw new Error('Win amount cannot be negative');
     }
 
-    const wallet = await this.getWallet(userId, session);
-
     if (winCents === 0) {
-      return wallet;
+      return this.getWallet(userId, session);
     }
 
-    const updatedWallet = await Wallet.findOneAndUpdate(
-      { userId, version: wallet.version },
+    let updatedWallet = await Wallet.findOneAndUpdate(
+      { userId },
       {
         $inc: { balanceCents: winCents, version: 1 },
       },
@@ -88,7 +86,12 @@ export class WalletService {
     );
 
     if (!updatedWallet) {
-      throw new Error('Concurrent wallet update detected during payout');
+      await this.getWallet(userId, session);
+      updatedWallet = await Wallet.findOneAndUpdate(
+        { userId },
+        { $inc: { balanceCents: winCents, version: 1 } },
+        { new: true, session: session || null }
+      );
     }
 
     const ledger = new WalletLedger({

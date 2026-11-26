@@ -67,7 +67,7 @@ export const GameStage = ({
     : Math.min(100, (energyPoints / 100) * 100);
 
   return (
-    <div className="relative w-full flex-1 flex flex-col items-center justify-center sm:justify-between pt-3.5 sm:pt-1 pb-1 sm:pb-1.5 overflow-hidden py-0 select-none">
+    <div className="relative w-full flex-1 flex flex-col items-center justify-between pt-2 sm:pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:pb-1.5 overflow-hidden select-none">
       {/* ========================================================
           1. EGYPTIAN DESERT NIGHT WEBP BACKGROUND
       ======================================================== */}
@@ -99,7 +99,7 @@ export const GameStage = ({
       {/* ========================================================
           2. STEPPED SANDSTONE TEMPLE SHRINE (Using WebP Frame)
       ======================================================== */}
-      <div className="relative z-10 w-[99%] max-w-[min(412px,calc((100dvh-265px)*0.98))] tall-mobile-temple sm:max-w-[min(550px,calc((100vh-170px)*1.08))] flex flex-col items-center select-none">
+      <div className="relative z-10 w-[99%] max-w-[min(400px,calc((100dvh-310px)*0.96))] tall-mobile-temple sm:max-w-[min(550px,calc((100vh-170px)*1.08))] my-auto flex flex-col items-center select-none">
         {/* Frame Outer Wrapper matching aspect ratio (1024 / 595 = 1.72) */}
         <div className="relative w-full aspect-[1024/595] flex flex-col items-center justify-between">
           {/* Temple Frame WebP Image Overlaid */}

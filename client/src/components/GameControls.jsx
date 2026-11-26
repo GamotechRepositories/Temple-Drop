@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Square, ChevronUp, ChevronDown, RefreshCw, Loader2, Sparkles } from 'lucide-react';
+import { Play, Square, ChevronUp, ChevronDown, RefreshCw, Sparkles } from 'lucide-react';
 import { GAME_CONFIG, centsToCredits } from '@temple-drop/shared';
 import { soundManager } from '../audio/soundManager.js';
 import { SpinMeter } from './SpinMeter.jsx';
@@ -81,7 +81,7 @@ export const GameControls = ({
     primaryShadow = 'inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px rgba(147, 51, 234, 0.6)';
   } else if (hasPendingFeatures && pendingSpinsCount > 0) {
     handlePrimaryAction = onOpenWheel;
-    primaryLabel = `SPIN WHEEL (${pendingSpinsCount})`;
+    primaryLabel = `SPIN (${pendingSpinsCount})`;
     primaryBg = 'linear-gradient(180deg, #0284c7 0%, #0369a1 100%)';
     primaryBorder = '1.5px solid #38bdf8';
     primaryShadow = 'inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px rgba(2, 132, 199, 0.6)';
@@ -96,7 +96,7 @@ export const GameControls = ({
   return (
     <div className="w-full max-w-[940px] mx-auto select-none px-2 pb-3.5 z-20">
       <div
-        className="w-full h-auto rounded-[18px] px-3.5 sm:px-5 py-3.5 sm:py-2.5 shadow-2xl relative"
+        className="w-full h-auto rounded-[18px] px-3.5 sm:px-5 py-2.5 shadow-2xl relative"
         style={{
           background: 'linear-gradient(180deg, #0c172c 0%, #070e1c 100%)',
           border: '2.5px solid #d97706',
@@ -122,7 +122,7 @@ export const GameControls = ({
         {/* ========================================================
             1. MOBILE VIEW (sm:hidden) - EXACT MATCH TO IMAGE
         ======================================================== */}
-        <div className="flex flex-col sm:hidden w-full space-y-3">
+        <div className="flex flex-col sm:hidden w-full space-y-2">
           {/* Top Row: BET/WIN on Left, FREE SPIN / FAST GAME on Right */}
           <div className="flex items-center justify-between w-full px-1">
             {/* Left Column: BET & WIN */}
@@ -344,18 +344,9 @@ export const GameControls = ({
               }}
               aria-label={primaryLabel}
             >
-              {isDropping ? (
-                <div className="flex items-center space-x-2">
-                  <Loader2 className="w-6 h-6 text-white animate-spin" />
-                  <span className="text-white font-black text-base tracking-wider hidden tall-mobile-inline">
-                    DROPPING...
-                  </span>
-                </div>
-              ) : (
-                <span className="text-white font-black text-lg tracking-wider">
-                  {primaryLabel}
-                </span>
-              )}
+              <span className="text-white font-black text-base sm:text-lg tracking-wider whitespace-nowrap leading-none px-2">
+                {primaryLabel}
+              </span>
             </button>
           </div>
         </div>
@@ -543,13 +534,9 @@ export const GameControls = ({
               }}
               aria-label={primaryLabel}
             >
-              {isDropping ? (
-                <Loader2 className="w-6 h-6 text-white animate-spin" />
-              ) : (
-                <span className="text-white font-black text-base tracking-wider">
-                  {primaryLabel}
-                </span>
-              )}
+              <span className="text-white font-black text-sm sm:text-base tracking-wider whitespace-nowrap leading-none">
+                {primaryLabel}
+              </span>
             </button>
           </div>
         </div>

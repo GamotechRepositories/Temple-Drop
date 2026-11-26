@@ -5,6 +5,12 @@ class SoundManager {
     this.musicEnabled = false;
     this.isMusicPlaying = false;
     this.bgAudio = null;
+    this.bgBuffer = null;
+    this.bgBufferLoading = false;
+    this.bgSource = null;
+    this.bgGain = null;
+    this.bgLoopStart = 0;
+    this.bgLoopEnd = 0;
     this.lastPegHitTime = 0;
   }
 
@@ -20,6 +26,102 @@ class SoundManager {
     }
   }
 
+  computeTrimmedLoopBounds(buffer) {
+    const threshold = 0.002;
+    const sampleRate = buffer.sampleRate;
+    const len = buffer.length;
+    let startSample = 0;
+    let endSample = len;
+
+    // Scan channels for leading & trailing MP3 encoder silence so loop is gapless
+    for (let i = 0; i < len; i += 1) {
+      let nonSilent = false;
+      for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
+        if (Math.abs(buffer.getChannelData(ch)[i]) > threshold) {
+          nonSilent = true;
+          break;
+        }
+      }
+      if (nonSilent) {
+        startSample = i;
+        break;
+      }
+    }
+
+    for (let i = len - 1; i > startSample; i -= 1) {
+      let nonSilent = false;
+      for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
+        if (Math.abs(buffer.getChannelData(ch)[i]) > threshold) {
+          nonSilent = true;
+          break;
+        }
+      }
+      if (nonSilent) {
+        endSample = i + 1;
+        break;
+      }
+    }
+
+    return {
+      loopStart: startSample / sampleRate,
+      loopEnd: Math.max((startSample + 1) / sampleRate, endSample / sampleRate),
+    };
+  }
+
+  async loadAndStartGaplessBg() {
+    if (!this.ctx || !this.musicEnabled) return false;
+    if (this.bgSource && this.isMusicPlaying) return true;
+
+    if (!this.bgBuffer) {
+      if (this.bgBufferLoading) return true;
+      this.bgBufferLoading = true;
+      try {
+        const res = await fetch('/audio/bg-music.mp3');
+        if (!res.ok) throw new Error('Audio fetch failed');
+        const arr = await res.arrayBuffer();
+        this.bgBuffer = await this.ctx.decodeAudioData(arr);
+        const bounds = this.computeTrimmedLoopBounds(this.bgBuffer);
+        this.bgLoopStart = bounds.loopStart;
+        this.bgLoopEnd = bounds.loopEnd;
+      } catch {
+        this.bgBufferLoading = false;
+        return false;
+      }
+      this.bgBufferLoading = false;
+    }
+
+    if (!this.musicEnabled || !this.ctx || !this.bgBuffer) return true;
+    if (this.bgSource) return true;
+
+    try {
+      // Stop HTML5 fallback if it was playing
+      if (this.bgAudio && !this.bgAudio.paused) {
+        this.bgAudio.pause();
+        this.bgAudio.currentTime = 0;
+      }
+
+      const source = this.ctx.createBufferSource();
+      source.buffer = this.bgBuffer;
+      source.loop = true;
+      source.loopStart = this.bgLoopStart;
+      source.loopEnd = this.bgLoopEnd;
+
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.22, this.ctx.currentTime);
+
+      source.connect(gain);
+      gain.connect(this.ctx.destination);
+      source.start(0, this.bgLoopStart);
+
+      this.bgSource = source;
+      this.bgGain = gain;
+      this.isMusicPlaying = true;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   initContext() {
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -30,10 +132,8 @@ class SoundManager {
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume().catch(() => {});
     }
-    if (this.musicEnabled && this.bgAudio && this.bgAudio.paused) {
-      this.bgAudio.play().then(() => {
-        this.isMusicPlaying = true;
-      }).catch(() => {});
+    if (this.musicEnabled && !this.isMusicPlaying) {
+      this.startAmbientMusic();
     }
   }
 
@@ -268,35 +368,79 @@ class SoundManager {
 
   startAmbientMusic() {
     if (!this.musicEnabled) return;
-    this.initBgAudio();
-    if (!this.bgAudio) return;
-
-    try {
-      const playPromise = this.bgAudio.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            this.isMusicPlaying = true;
-          })
-          .catch(() => {
-            // Autoplay policy: wait for user interaction to start background music
-            const startOnGesture = () => {
-              if (this.musicEnabled && this.bgAudio) {
-                this.bgAudio.play().then(() => {
-                  this.isMusicPlaying = true;
-                }).catch(() => {});
-              }
-              window.removeEventListener('pointerdown', startOnGesture);
-              window.removeEventListener('keydown', startOnGesture);
-            };
-            window.addEventListener('pointerdown', startOnGesture, { once: true });
-            window.addEventListener('keydown', startOnGesture, { once: true });
-          });
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        this.ctx = new AudioCtx();
       }
-    } catch {}
+    }
+
+    const bindGestureUnlock = () => {
+      if (this._gestureBound) return;
+      this._gestureBound = true;
+      const events = ['pointerdown', 'touchend', 'click', 'keydown'];
+      const startOnGesture = async () => {
+        events.forEach((ev) => window.removeEventListener(ev, startOnGesture));
+        this._gestureBound = false;
+        if (this.musicEnabled && !this.isMusicPlaying) {
+          await startPlayback();
+        }
+      };
+      events.forEach((ev) => window.addEventListener(ev, startOnGesture, { passive: true }));
+    };
+
+    const startPlayback = async () => {
+      if (!this.musicEnabled || this.isMusicPlaying) return;
+      if (this.ctx && this.ctx.state === 'suspended') {
+        try {
+          await this.ctx.resume();
+        } catch {}
+      }
+      if (this.ctx && this.ctx.state === 'running') {
+        const startedGapless = await this.loadAndStartGaplessBg();
+        if (startedGapless) return;
+      }
+
+      // Fallback to HTML5 Audio if Web Audio is blocked or unavailable
+      this.initBgAudio();
+      if (!this.bgAudio) return;
+      try {
+        const playPromise = this.bgAudio.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              this.isMusicPlaying = true;
+            })
+            .catch(() => {
+              bindGestureUnlock();
+            });
+        }
+      } catch {
+        bindGestureUnlock();
+      }
+    };
+
+    if (this.ctx && this.ctx.state === 'suspended') {
+      bindGestureUnlock();
+    }
+
+    startPlayback();
   }
 
   stopAmbientMusic() {
+    if (this.bgSource) {
+      try {
+        this.bgSource.stop();
+        this.bgSource.disconnect();
+      } catch {}
+      this.bgSource = null;
+    }
+    if (this.bgGain) {
+      try {
+        this.bgGain.disconnect();
+      } catch {}
+      this.bgGain = null;
+    }
     if (this.bgAudio) {
       try {
         this.bgAudio.pause();

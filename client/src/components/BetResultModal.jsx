@@ -102,14 +102,19 @@ export const BetResultModal = ({ isOpen, onClose, resultData }) => {
   if (!isOpen || !resultData) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 select-none animate-fadeIn">
+    <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 select-none animate-fadeIn">
       <div
-        className="rounded-3xl p-4 sm:p-5 max-w-md w-full relative shadow-2xl max-h-[82dvh] flex flex-col overflow-y-auto transition-all"
+        className="rounded-3xl p-3.5 sm:p-4 max-w-md w-full relative shadow-2xl max-h-[92dvh] flex flex-col overflow-hidden transition-all"
         style={{
-          background: 'linear-gradient(180deg, #0c172c 0%, #070e1c 100%)',
-          border: '2.5px solid #d97706',
+          background:
+            isWin
+              ? 'radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.16) 0%, #0c172c 42%, #060d1a 100%)'
+              : isBreakEven
+              ? 'radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.16) 0%, #0c172c 42%, #060d1a 100%)'
+              : 'radial-gradient(circle at 50% 0%, rgba(244, 63, 94, 0.13) 0%, #0c172c 42%, #060d1a 100%)',
+          border: '2px solid #d97706',
           boxShadow:
-            '0 24px 50px rgba(0, 0, 0, 0.9), inset 0 0 18px rgba(245, 158, 11, 0.14), 0 0 0 1px rgba(254, 240, 138, 0.28)',
+            '0 24px 50px rgba(0, 0, 0, 0.92), inset 0 0 22px rgba(245, 158, 11, 0.14), 0 0 0 1px rgba(254, 240, 138, 0.28)',
         }}
       >
         {/* Close Button */}
@@ -118,20 +123,20 @@ export const BetResultModal = ({ isOpen, onClose, resultData }) => {
             soundManager.playButtonClick();
             onClose();
           }}
-          className="absolute top-4 right-4 p-2 text-slate-950 rounded-full transition-all hover:brightness-110 active:scale-95"
+          className="absolute top-3 right-3 p-1.5 text-slate-950 rounded-full transition-all hover:brightness-110 active:scale-95 z-10"
           style={{
             background: 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)',
             border: '2px solid #fef08a',
           }}
           aria-label="Close result modal"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         {/* Hero Header & Outcome Badge */}
-        <div className="flex flex-col items-center text-center mt-1 mb-4">
+        <div className="shrink-0 flex flex-col items-center text-center pt-0.5 pb-2.5 border-b border-slate-800/70 mb-2.5">
           <span
-            className={`text-xs xs:text-sm font-black uppercase tracking-widest px-3 py-0.5 rounded-full mb-1.5 ${
+            className={`text-[11px] font-black uppercase tracking-widest px-3 py-0.5 rounded-full mb-1 ${
               isWin
                 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                 : isBreakEven
@@ -151,25 +156,25 @@ export const BetResultModal = ({ isOpen, onClose, resultData }) => {
           </span>
 
           {/* Main Net Amount */}
-          <div className="flex items-baseline justify-center space-x-1.5 my-1">
+          <div className="flex items-baseline justify-center space-x-1.5 my-0.5">
             <span
-              className={`text-3xl xs:text-4xl font-black font-mono leading-none tracking-tight ${
+              className={`text-2xl sm:text-3xl font-black font-mono leading-none tracking-tight ${
                 isWin
-                  ? 'text-emerald-400'
+                  ? 'text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.35)]'
                   : isBreakEven
                   ? 'text-amber-300'
-                  : 'text-rose-400'
+                  : 'text-rose-400 drop-shadow-[0_0_12px_rgba(251,113,133,0.3)]'
               }`}
             >
               {isWin ? '+' : ''}
               {centsToCredits(effectiveNetCents)}
             </span>
-            <span className="text-sm font-bold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
               {GAME_CONFIG.CURRENCY_SYMBOL}
             </span>
           </div>
 
-          <p className="text-xs text-slate-400 font-medium max-w-[280px]">
+          <p className="text-[11px] text-slate-400 font-medium max-w-[300px] leading-snug">
             {isAutoSummary
               ? `Completed ${summaryTotals.roundsCount} auto drop round${summaryTotals.roundsCount > 1 ? 's' : ''}.`
               : isWin
@@ -180,11 +185,14 @@ export const BetResultModal = ({ isOpen, onClose, resultData }) => {
           </p>
 
           {!isAutoSummary && payoutCapReached && (
-            <div className="mt-2 text-[11px] font-bold text-amber-300 bg-amber-950/60 border border-amber-600/50 px-2.5 py-1 rounded-lg">
-              Payout cap of {centsToCredits(GAME_CONFIG.PAYOUT_CAP_CENTS)} {GAME_CONFIG.CURRENCY_SYMBOL} reached for this round!
+            <div className="mt-1.5 text-[10px] font-bold text-amber-300 bg-amber-950/60 border border-amber-600/50 px-2.5 py-0.5 rounded-lg">
+              Payout cap of {centsToCredits(GAME_CONFIG.PAYOUT_CAP_CENTS)} {GAME_CONFIG.CURRENCY_SYMBOL} reached!
             </div>
           )}
         </div>
+
+        {/* Scrollable Middle Details */}
+        <div className="flex-1 min-h-0 overflow-y-auto pr-0.5 space-y-2.5">
 
         {isAutoSummary ? (
           <>
@@ -281,8 +289,8 @@ export const BetResultModal = ({ isOpen, onClose, resultData }) => {
         ) : (
           <>
         {/* Bet Details Grid (4 key stats) */}
-        <div className="bg-[#080d18] border border-slate-800 rounded-2xl p-3.5 mb-3.5 shadow-inner">
-          <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2 flex items-center justify-between gap-2 border-b border-slate-800 pb-1.5">
+        <div className="bg-[#080d18]/90 border border-slate-800 rounded-2xl p-2.5 sm:p-3 shadow-inner">
+          <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2 flex items-center justify-between gap-2 border-b border-slate-800 pb-1">
             <span className="shrink-0">Round Specifications</span>
             <div className="inline-flex items-center space-x-1.5 min-w-0 font-mono text-[10px] text-slate-400 normal-case">
               <span className="truncate">ID: {roundId}</span>
@@ -307,28 +315,28 @@ export const BetResultModal = ({ isOpen, onClose, resultData }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="flex flex-col bg-[#0f172a]/60 p-2 rounded-xl border border-slate-800/80">
-              <span className="text-[10px] text-slate-400 uppercase">Bet Per Ball</span>
+          <div className="grid grid-cols-2 gap-1.5 text-xs">
+            <div className="flex flex-col bg-[#0f172a]/70 px-2.5 py-1.5 rounded-xl border border-slate-800/80">
+              <span className="text-[9px] text-slate-400 uppercase tracking-wide">Bet Per Ball</span>
               <span className="font-mono font-bold text-slate-200">
                 {centsToCredits(betPerBallCents)} {GAME_CONFIG.CURRENCY_SYMBOL}
               </span>
             </div>
 
-            <div className="flex flex-col bg-[#0f172a]/60 p-2 rounded-xl border border-slate-800/80">
-              <span className="text-[10px] text-slate-400 uppercase">Balls Dropped</span>
+            <div className="flex flex-col bg-[#0f172a]/70 px-2.5 py-1.5 rounded-xl border border-slate-800/80">
+              <span className="text-[9px] text-slate-400 uppercase tracking-wide">Balls Dropped</span>
               <span className="font-mono font-bold text-slate-200">{ballCount} Balls</span>
             </div>
 
-            <div className="flex flex-col bg-[#0f172a]/60 p-2 rounded-xl border border-slate-800/80">
-              <span className="text-[10px] text-slate-400 uppercase">Total Wager</span>
+            <div className="flex flex-col bg-[#0f172a]/70 px-2.5 py-1.5 rounded-xl border border-slate-800/80">
+              <span className="text-[9px] text-slate-400 uppercase tracking-wide">Total Wager</span>
               <span className="font-mono font-bold text-slate-200">
                 {centsToCredits(totalBetCents)} {GAME_CONFIG.CURRENCY_SYMBOL}
               </span>
             </div>
 
-            <div className="flex flex-col bg-[#0f172a]/60 p-2 rounded-xl border border-slate-800/80">
-              <span className="text-[10px] text-slate-400 uppercase">Gross Payout</span>
+            <div className="flex flex-col bg-[#0f172a]/70 px-2.5 py-1.5 rounded-xl border border-slate-800/80">
+              <span className="text-[9px] text-slate-400 uppercase tracking-wide">Gross Payout</span>
               <span className="font-mono font-bold text-emerald-300">
                 {centsToCredits(grossPayoutCents)} {GAME_CONFIG.CURRENCY_SYMBOL}
               </span>
@@ -336,7 +344,7 @@ export const BetResultModal = ({ isOpen, onClose, resultData }) => {
           </div>
 
           {walletBalanceCents !== undefined && (
-            <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
+            <div className="mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-xs">
               <span className="text-slate-400 font-medium">New Wallet Balance:</span>
               <span className="font-mono font-black text-amber-300">
                 {centsToCredits(walletBalanceCents)} {GAME_CONFIG.CURRENCY_SYMBOL}
@@ -347,15 +355,15 @@ export const BetResultModal = ({ isOpen, onClose, resultData }) => {
 
         {/* Slot Landings Breakdown */}
         {slotBreakdown.length > 0 && (
-          <div className="mb-3.5">
-            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1.5">
+          <div>
+            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">
               Slot Hits Distribution
             </span>
             <div className="flex flex-wrap gap-1.5">
               {slotBreakdown.map((s, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center space-x-1.5 px-2.5 py-1 rounded-xl bg-slate-800/80 border border-slate-700/60 shadow-sm text-xs"
+                  className="flex items-center space-x-1 px-2 py-0.5 rounded-lg bg-slate-800/80 border border-slate-700/60 shadow-sm text-[11px]"
                 >
                   <span
                     className="font-black font-mono px-1.5 py-0.5 rounded text-[10px]"
@@ -363,7 +371,7 @@ export const BetResultModal = ({ isOpen, onClose, resultData }) => {
                   >
                     {s.label}
                   </span>
-                  <span className="font-bold text-slate-200 text-xs">× {s.count}</span>
+                  <span className="font-bold text-slate-200">× {s.count}</span>
                   {s.totalPayoutCents > 0 && (
                     <span className="text-[10px] font-mono text-emerald-400">
                       ({centsToCredits(s.totalPayoutCents)})
@@ -377,8 +385,8 @@ export const BetResultModal = ({ isOpen, onClose, resultData }) => {
 
         {/* Spin Meter Progress Alert */}
         {spinPointsEarned > 0 && (
-          <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-2.5 mb-4 flex items-center space-x-2 text-xs text-amber-300">
-            <Disc3 className="w-4 h-4 text-amber-400 flex-shrink-0" />
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-2.5 py-1.5 flex items-center space-x-2 text-[11px] text-amber-300">
+            <Disc3 className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
             <span>
               <strong>+{spinPointsEarned} Spin Point{spinPointsEarned > 1 ? 's' : ''}!</strong> ({spinPoints}/10 towards Free Wheel Spin)
             </span>
@@ -386,23 +394,26 @@ export const BetResultModal = ({ isOpen, onClose, resultData }) => {
         )}
           </>
         )}
+        </div>
 
-        {/* Action Button: Play Again / Continue */}
-        <button
-          onClick={() => {
-            soundManager.playButtonClick();
-            onClose();
-          }}
-          className="w-full py-3.5 px-4 rounded-2xl font-black text-sm uppercase tracking-wider text-slate-950 transition-all transform active:scale-95 hover:brightness-110 shadow-lg flex items-center justify-center space-x-2"
-          style={{
-            background: 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)',
-            border: '2px solid #fef08a',
-            boxShadow: '0 4px 14px rgba(217, 119, 6, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45)',
-          }}
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>Continue / Play Again</span>
-        </button>
+        {/* Pinned Action Button: Play Again / Continue */}
+        <div className="shrink-0 pt-2.5 mt-1 border-t border-slate-800/60">
+          <button
+            onClick={() => {
+              soundManager.playButtonClick();
+              onClose();
+            }}
+            className="w-full py-2.5 sm:py-3 px-4 rounded-2xl font-black text-sm uppercase tracking-wider text-slate-950 transition-all transform active:scale-95 hover:brightness-110 shadow-lg flex items-center justify-center space-x-2"
+            style={{
+              background: 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)',
+              border: '2px solid #fef08a',
+              boxShadow: '0 4px 14px rgba(217, 119, 6, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45)',
+            }}
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Continue / Play Again</span>
+          </button>
+        </div>
       </div>
     </div>
   );

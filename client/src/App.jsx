@@ -150,9 +150,20 @@ export const App = () => {
       setFastMode(gameState.user.preferences.fastMode);
       setReducedMotion(gameState.user.preferences.reducedMotion);
       soundManager.setSoundEnabled(gameState.user.preferences.soundEnabled);
-      soundManager.setMusicEnabled(gameState.user.preferences.musicEnabled);
+      if (!showIntro) {
+        soundManager.setMusicEnabled(gameState.user.preferences.musicEnabled);
+      } else if (!gameState.user.preferences.musicEnabled) {
+        soundManager.setMusicEnabled(false);
+      }
     }
+    api.fetchCsrfToken();
   }, [gameState]);
+
+  useEffect(() => {
+    if (!showIntro && preferences.musicEnabled && !soundManager.isMusicPlaying) {
+      soundManager.setMusicEnabled(true);
+    }
+  }, [showIntro, preferences.musicEnabled]);
 
   const handleUpdatePreferences = async (updated) => {
     const next = { ...preferences, ...updated };

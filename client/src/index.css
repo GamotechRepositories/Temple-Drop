@@ -405,7 +405,7 @@
     gap: 0.5rem !important;
   }
   .tall-mobile-item {
-    height: 52px !important;
+    height: 46px !important;
   }
   .tall-mobile-inline {
     display: inline-block !important;
@@ -417,6 +417,6 @@
     order: 2 !important;
   }
   .tall-mobile-temple {
-    max-width: min(412px, calc((100dvh - 350px) * 0.98)) !important;
+    max-width: min(390px, calc((100dvh - 375px) * 0.96)) !important;
   }
 }

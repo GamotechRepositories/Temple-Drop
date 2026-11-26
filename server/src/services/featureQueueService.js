@@ -61,22 +61,24 @@ export class FeatureQueueService {
     state.energyPoints = totalEnergy % GAME_CONFIG.ENERGY_THRESHOLD_FOR_BONUS;
     await state.save({ session });
 
-    let currentOrder = await this.getNextOrderNumber(userId, session);
+    if (earnedSpins > 0) {
+      let currentOrder = await this.getNextOrderNumber(userId, session);
 
-    // Queue wheel spins only. Bonus is ONLY granted when the Wheel Spin lands on BONUS.
-    for (let s = 0; s < earnedSpins; s++) {
-      const spinFeature = new PendingFeature({
-        userId,
-        roundId,
-        type: 'WHEEL_SPIN',
-        status: 'PENDING',
-        betPerBallCents,
-        order: currentOrder++,
-      });
-      await spinFeature.save({ session });
+      // Queue wheel spins only. Bonus is ONLY granted when the Wheel Spin lands on BONUS.
+      for (let s = 0; s < earnedSpins; s++) {
+        const spinFeature = new PendingFeature({
+          userId,
+          roundId,
+          type: 'WHEEL_SPIN',
+          status: 'PENDING',
+          betPerBallCents,
+          order: currentOrder++,
+        });
+        await spinFeature.save({ session });
+      }
+
+      await this.ensureActiveFeature(userId, session);
     }
-
-    await this.ensureActiveFeature(userId, session);
 
     return {
       spinPoints: state.spinPoints,
