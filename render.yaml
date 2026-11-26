@@ -1,17 +1,16 @@
 services:
   - type: web
     name: temple-drop
-    runtime: node
+    runtime: docker
     plan: free
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
-      - key: USE_IN_MEMORY_MONGO
-        value: "false"
       - key: COOKIE_SECURE
+        value: "true"
+      - key: SERVE_CLIENT_DIST
         value: "true"
       - key: SESSION_SECRET
         generateValue: true
