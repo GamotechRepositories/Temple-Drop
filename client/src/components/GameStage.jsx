@@ -27,6 +27,8 @@ export const GameStage = ({
   onChangeBet,
   onChangeBallCount,
   isDropping,
+  betCountdown = null,
+  onCancelBetCountdown,
   onDrop,
   onBonusDrop,
   autoDropCount,
@@ -185,6 +187,8 @@ export const GameStage = ({
           onChangeBet={onChangeBet}
           onChangeBallCount={onChangeBallCount}
           isDropping={isDropping}
+          betCountdown={betCountdown}
+          onCancelBetCountdown={onCancelBetCountdown}
           hasPendingFeatures={pendingFeatures.length > 0}
           pendingSpinsCount={pendingSpinsCount}
           spinPoints={spinPoints}

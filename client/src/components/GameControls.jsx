@@ -10,6 +10,8 @@ export const GameControls = ({
   onChangeBet,
   onChangeBallCount,
   isDropping,
+  betCountdown = null,
+  onCancelBetCountdown,
   hasPendingFeatures,
   pendingSpinsCount = 0,
   spinPoints = 0,
@@ -64,9 +66,10 @@ export const GameControls = ({
 
   const totalBetCents = betPerBallCents * ballCount;
   const isAutoPlaying = autoDropCount !== null;
+  const isCountingDown = betCountdown !== null;
   const isActionDisabled = isDropping;
 
-  // Adaptive primary button state: Bonus Drop, Wheel Spin, or Standard BET
+  // Adaptive primary button state: Bonus Drop, Wheel Spin, Countdown Stop, or Standard BET
   let handlePrimaryAction = onDrop;
   let primaryLabel = 'BET';
   let primaryBg = 'linear-gradient(180deg, #22c55e 0%, #15803d 100%)';
@@ -85,6 +88,12 @@ export const GameControls = ({
     primaryBg = 'linear-gradient(180deg, #0284c7 0%, #0369a1 100%)';
     primaryBorder = '1.5px solid #38bdf8';
     primaryShadow = 'inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px rgba(2, 132, 199, 0.6)';
+  } else if (isCountingDown) {
+    handlePrimaryAction = onCancelBetCountdown || onDrop;
+    primaryLabel = `STOP (${betCountdown})`;
+    primaryBg = 'linear-gradient(180deg, #ef4444 0%, #b91c1c 100%)';
+    primaryBorder = '2px solid #fca5a5';
+    primaryShadow = 'inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px rgba(239, 68, 68, 0.6)';
   }
 
   const stepperCardStyle = {

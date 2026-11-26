@@ -36,6 +36,8 @@ export const App = () => {
   const [reducedMotion, setReducedMotion] = useState(false);
 
   const [isDropping, setIsDropping] = useState(false);
+  const [betCountdown, setBetCountdown] = useState(null);
+  const betCountdownTimerRef = useRef(null);
   const [ballsToAnimate, setBallsToAnimate] = useState(null);
   const [lastWinCents, setLastWinCents] = useState(0);
   const [payoutCapReached, setPayoutCapReached] = useState(false);
@@ -178,30 +180,25 @@ export const App = () => {
     } catch { }
   };
 
-  // Regular / Active Drop Handler
-  const handleDrop = async () => {
+  const cancelBetCountdown = useCallback(() => {
+    if (betCountdownTimerRef.current) {
+      clearTimeout(betCountdownTimerRef.current);
+      betCountdownTimerRef.current = null;
+    }
+    setBetCountdown(null);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (betCountdownTimerRef.current) {
+        clearTimeout(betCountdownTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Execute paid drop against backend & trigger ball animation
+  const executeDrop = async () => {
     if (isDropping) return;
-
-    // If active bonus is in progress, route to bonus drop
-    if (activeBonus) {
-      return handleBonusDrop();
-    }
-
-    // If pending features exist, trigger wheel or bonus (allow auto-drop to finish queued rounds if only WHEEL_SPIN is pending)
-    if (pendingFeatures && pendingFeatures.length > 0) {
-      const hasBonus = pendingFeatures.some((f) => f.type === 'BONUS');
-      if (hasBonus) {
-        return handleBonusDrop();
-      }
-      if (autoDropCountRef.current === null) {
-        const hasSpins = pendingFeatures.some((f) => f.type === 'WHEEL_SPIN');
-        if (hasSpins) {
-          setShowWheel(true);
-          return;
-        }
-        return handleBonusDrop();
-      }
-    }
 
     const totalBetCents = betPerBallCents * ballCount;
     if (wallet.balanceCents < totalBetCents) {
@@ -233,6 +230,72 @@ export const App = () => {
       setTimeout(() => setDropError(null), 4000);
       refetchGameState();
     }
+  };
+
+  const executeDropRef = useRef(executeDrop);
+  useEffect(() => {
+    executeDropRef.current = executeDrop;
+  });
+
+  // Regular / Active Drop Handler (starts 3-2-1 countdown for manual BET, or cancels if counting down)
+  const handleDrop = async () => {
+    if (isDropping) return;
+
+    if (betCountdown !== null) {
+      cancelBetCountdown();
+      return;
+    }
+
+    // If active bonus is in progress, route to bonus drop
+    if (activeBonus) {
+      return handleBonusDrop();
+    }
+
+    // If pending features exist, trigger wheel or bonus (allow auto-drop to finish queued rounds if only WHEEL_SPIN is pending)
+    if (pendingFeatures && pendingFeatures.length > 0) {
+      const hasBonus = pendingFeatures.some((f) => f.type === 'BONUS');
+      if (hasBonus) {
+        return handleBonusDrop();
+      }
+      if (autoDropCountRef.current === null) {
+        const hasSpins = pendingFeatures.some((f) => f.type === 'WHEEL_SPIN');
+        if (hasSpins) {
+          setShowWheel(true);
+          return;
+        }
+        return handleBonusDrop();
+      }
+    }
+
+    const totalBetCents = betPerBallCents * ballCount;
+    if (wallet.balanceCents < totalBetCents) {
+      setDropError('Insufficient credits for this bet. Refill or reduce your bet.');
+      setTimeout(() => setDropError(null), 4000);
+      stopAutoDrop();
+      return;
+    }
+
+    // Auto-drop rounds execute immediately without repeating the 3-2-1 countdown
+    if (autoDropCountRef.current !== null) {
+      return executeDrop();
+    }
+
+    // Start 3 -> 2 -> 1 countdown before placing bet & dropping balls
+    const stepMs = 850;
+    const runStep = (value) => {
+      setBetCountdown(value);
+      betCountdownTimerRef.current = setTimeout(() => {
+        if (value > 1) {
+          runStep(value - 1);
+        } else {
+          betCountdownTimerRef.current = null;
+          setBetCountdown(null);
+          executeDropRef.current();
+        }
+      }, stepMs);
+    };
+
+    runStep(3);
   };
 
   const handleDropRef = useRef(handleDrop);
@@ -510,6 +573,8 @@ export const App = () => {
             onChangeBet={setBetPerBallCents}
             onChangeBallCount={setBallCount}
             isDropping={isDropping}
+            betCountdown={betCountdown}
+            onCancelBetCountdown={cancelBetCountdown}
             onDrop={handleDrop}
             onBonusDrop={handleBonusDrop}
             autoDropCount={autoDropCount}
