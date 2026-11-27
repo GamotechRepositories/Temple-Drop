@@ -71,6 +71,7 @@ public class SecurityConfig {
                     "/api/auth/logout",
                     "/api/game/config",
                     "/api/game/provider-config",
+                    "/api/game/launch/session",
                     "/api/admin/login",
                     "/api/admin/logout"
                 ).permitAll()

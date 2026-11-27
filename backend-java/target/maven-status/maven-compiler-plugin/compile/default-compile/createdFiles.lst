@@ -2,6 +2,7 @@ com\templedrop\repository\ActiveBonusRepository.class
 com\templedrop\engine\GameEngine.class
 com\templedrop\security\CsrfFilter.class
 com\templedrop\controller\SpaFallbackController.class
+com\templedrop\service\ProviderWalletBridgeService$2.class
 com\templedrop\service\ProviderWalletBridgeService.class
 com\templedrop\TempleDropApplication.class
 com\templedrop\dto\AdminDtos$ProviderConfigResponse.class

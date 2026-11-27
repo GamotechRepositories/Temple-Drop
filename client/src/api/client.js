@@ -1,3 +1,5 @@
+import { providerSdkBridge } from './providerSdk.js';
+
 const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 
 class ApiClient {
@@ -29,6 +31,7 @@ class ApiClient {
     const headers = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
+      ...providerSdkBridge.getLaunchHeaders(),
       ...(options.headers || {}),
     };
 

@@ -9,9 +9,11 @@ import {
   Crown,
   User,
   User as UserIcon,
+  Home,
 } from 'lucide-react';
 import { centsToCredits } from '@temple-drop/shared';
 import { soundManager } from '../audio/soundManager.js';
+import { exitGame } from '../api/providerSdk.js';
 
 export const Header = ({
   user,
@@ -22,8 +24,20 @@ export const Header = ({
   onRefill,
   canRefill,
   currencySymbol = '₹',
+  launchSession = null,
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const safeCloseUrl = (() => {
+    const raw = launchSession?.closeUrl;
+    if (!raw) return null;
+    try {
+      const u = new URL(raw, window.location.origin);
+      return u.protocol === 'http:' || u.protocol === 'https:' ? u.toString() : null;
+    } catch {
+      return null;
+    }
+  })();
 
   const toggleFullscreen = () => {
     soundManager.playButtonClick();
@@ -36,7 +50,9 @@ export const Header = ({
     }
   };
 
-  const displayName = user?.email
+  const displayName = launchSession?.username
+    ? launchSession.username
+    : user?.email
     ? user.email.includes('@')
       ? user.email.split('@')[0]
       : user.email
@@ -121,6 +137,26 @@ export const Header = ({
         >
           {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
         </button>
+
+        {safeCloseUrl && (
+          <button
+            type="button"
+            onClick={() => {
+              soundManager.playButtonClick();
+              exitGame(safeCloseUrl);
+            }}
+            title="Return to Lobby"
+            className="p-2 rounded-xl text-slate-950 flex items-center justify-center transition-all hover:brightness-110 active:scale-95"
+            style={{
+              background: 'linear-gradient(180deg, #fde047 0%, #f59e0b 55%, #d97706 100%)',
+              border: '2px solid #fef08a',
+              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 2px 8px rgba(217, 119, 6, 0.4)',
+            }}
+            aria-label="Home / Exit to lobby"
+          >
+            <Home className="w-4 h-4" />
+          </button>
+        )}
 
         {/* User Profile / Settings Menu Button */}
         <button

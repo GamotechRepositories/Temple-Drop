@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { GAME_CONFIG } from '@temple-drop/shared';
 import { api } from './api/client.js';
-import { providerSdkBridge } from './api/providerSdk.js';
+import { providerSdkBridge, parseLaunchSession, exitGame } from './api/providerSdk.js';
 import { soundManager } from './audio/soundManager.js';
 import { Header } from './components/Header.jsx';
 import { GameStage } from './components/GameStage.jsx';
@@ -43,6 +43,7 @@ export const App = () => {
   const [lastWinCents, setLastWinCents] = useState(0);
   const [payoutCapReached, setPayoutCapReached] = useState(false);
   const [dropError, setDropError] = useState(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const pendingDropSettlementRef = useRef(null);
 
   const [autoDropCount, setAutoDropCount] = useState(null);
@@ -74,7 +75,11 @@ export const App = () => {
   }, []);
 
   useEffect(() => {
-    providerSdkBridge.initIfPresent();
+    providerSdkBridge.initIfPresent().then((res) => {
+      if (typeof res?.authoritativeBalanceCents === 'number') {
+        setWallet((prev) => ({ ...prev, balanceCents: res.authoritativeBalanceCents }));
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -217,11 +222,14 @@ export const App = () => {
     setBallsToAnimate(null);
 
     const prevBalance = wallet.balanceCents;
-    // Optimistically deduct bet from wallet
-    setWallet((prev) => ({
-      ...prev,
-      balanceCents: Math.max(0, prev.balanceCents - totalBetCents),
-    }));
+    const isOperationsLaunch = Boolean(launchSession?.token && launchSession?.partnerCode);
+    // In demo mode optimistically deduct bet; in operations launch mode wait for authoritative 2052 balance
+    if (!isOperationsLaunch) {
+      setWallet((prev) => ({
+        ...prev,
+        balanceCents: Math.max(0, prev.balanceCents - totalBetCents),
+      }));
+    }
 
     try {
       const dropRes = await api.postDrop(betPerBallCents, ballCount);
@@ -235,8 +243,13 @@ export const App = () => {
       setWallet((prev) => ({ ...prev, balanceCents: prevBalance }));
       setIsDropping(false);
       stopAutoDrop();
-      setDropError(err.message || 'Drop failed');
-      setTimeout(() => setDropError(null), 4000);
+      const msg = err.message || 'Drop failed';
+      if (msg.includes('SESSION_EXPIRED') || msg.includes('ERR-0011') || msg.includes('ERR-0012') || msg.includes('ERR-0013')) {
+        setSessionExpired(true);
+      } else {
+        setDropError(msg);
+        setTimeout(() => setDropError(null), 4000);
+      }
       refetchGameState();
     }
   };
@@ -531,6 +544,13 @@ export const App = () => {
 
   const canRefill = wallet.balanceCents < GAME_CONFIG.MIN_BET_CENTS && pendingFeatures.length === 0 && !activeBonus;
   const currentAvatar = GAME_CONFIG.AVATARS.find((a) => a.id === preferences.avatarId)?.icon || 'E';
+  const launchSession = parseLaunchSession();
+  const currencySymbol =
+    launchSession?.currency === 'USD'
+      ? '$'
+      : launchSession?.currency === 'EUR'
+      ? '€'
+      : '₹';
 
   return (
     <div className="relative w-full h-screen h-[100dvh] max-h-[100dvh] bg-[#050811] text-slate-100 flex flex-col justify-between overflow-hidden font-sans select-none">
@@ -541,6 +561,24 @@ export const App = () => {
           onAssetsReady={() => setIntroAssetsReady(true)}
           onComplete={handleIntroComplete}
         />
+      )}
+
+      {sessionExpired && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm rounded-2xl border-2 border-amber-500/60 bg-[#0b1322] p-6 text-center space-y-4 shadow-2xl">
+            <h2 className="text-lg font-bold text-amber-300">Session Expired</h2>
+            <p className="text-xs text-slate-300">
+              Your game session is invalid or has expired. Please return to the lobby to relaunch.
+            </p>
+            <button
+              type="button"
+              onClick={() => exitGame(launchSession?.closeUrl)}
+              className="w-full py-2.5 px-4 rounded-xl font-bold text-sm text-slate-950 bg-gradient-to-b from-yellow-300 to-amber-500 hover:brightness-110"
+            >
+              Return to Lobby
+            </button>
+          </div>
+        </div>
       )}
 
       {/* UNDERLYING GAME SHELL (inert while door intro is active) */}
@@ -559,7 +597,8 @@ export const App = () => {
           onOpenSettings={() => setShowSettings(true)}
           onRefill={handleRefill}
           canRefill={canRefill}
-          currencySymbol="₹"
+          currencySymbol={currencySymbol}
+          launchSession={launchSession}
         />
 
         {/* 2. MAIN GAME STAGE VIEWPORT */}

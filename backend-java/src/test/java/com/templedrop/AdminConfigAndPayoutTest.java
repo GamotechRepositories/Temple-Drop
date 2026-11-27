@@ -9,6 +9,9 @@ import com.templedrop.repository.GameConfigVersionRepository;
 import com.templedrop.service.AdminAuditService;
 import com.templedrop.service.GameConfigService;
 import com.templedrop.service.PayoutAnalysisService;
+import com.templedrop.service.ProviderWalletBridgeService;
+import com.templedrop.repository.ProviderConfigRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -136,5 +139,15 @@ class AdminConfigAndPayoutTest {
         ));
         GameEngine.WheelSpinResult winResult = engine.spinWheel(100L, 0L, v1Recorded);
         assertEquals(200L, winResult.creditedPayoutCents());
+    }
+
+    @Test
+    void extractsAuthoritativeFloatBalanceInCents() {
+        ProviderWalletBridgeService bridge = new ProviderWalletBridgeService(
+            mock(ProviderConfigRepository.class),
+            new ObjectMapper()
+        );
+        assertEquals(101500L, bridge.extractAuthoritativeBalanceCents(java.util.Map.of("status", true, "message", 1015.0)));
+        assertEquals(99950L, bridge.extractAuthoritativeBalanceCents(java.util.Map.of("status", true, "message", "999.50")));
     }
 }

@@ -109,6 +109,9 @@ public class GameController {
     public ResponseEntity<GameDtos.DropResponse> drop(
         @AuthenticationPrincipal AuthenticatedUser authUser,
         @RequestHeader(value = "x-idempotency-key", required = false) String idempotencyKey,
+        @RequestHeader(value = "X-Launch-Token", required = false) String launchToken,
+        @RequestHeader(value = "X-Partner-Code", required = false) String partnerCode,
+        @RequestHeader(value = "X-Launch-Gid", required = false) String launchGid,
         @Valid @RequestBody GameDtos.DropRequest req
     ) {
         IdempotencyService.ExecutionResult<GameDtos.DropResponse> result = idempotencyService.execute(
@@ -117,7 +120,45 @@ public class GameController {
             idempotencyKey,
             req,
             GameDtos.DropResponse.class,
-            () -> gameService.processDrop(authUser.userObjectId(), req)
+            () -> {
+                GameDtos.DropResponse dropRes = gameService.processDrop(authUser.userObjectId(), req);
+                if (launchToken != null && !launchToken.isBlank()
+                    && partnerCode != null && !partnerCode.isBlank()
+                    && providerWalletBridgeService.hasOperationsConfig(partnerCode)) {
+                    String tranId = (launchGid != null ? launchGid + "-" : "") + dropRes.roundId() + "-1";
+                    Long authBal = providerWalletBridgeService.settleOperationsTransfer(
+                        launchToken,
+                        partnerCode,
+                        launchGid,
+                        dropRes.totalBetCents(),
+                        dropRes.grossPayoutCents(),
+                        "spin",
+                        1,
+                        dropRes.roundId(),
+                        tranId
+                    );
+                    if (authBal != null) {
+                        return new GameDtos.DropResponse(
+                            dropRes.roundId(),
+                            dropRes.type(),
+                            dropRes.betPerBallCents(),
+                            dropRes.ballCount(),
+                            dropRes.totalBetCents(),
+                            dropRes.balls(),
+                            dropRes.grossPayoutCents(),
+                            dropRes.netPayoutCents(),
+                            dropRes.payoutCapReached(),
+                            authBal,
+                            dropRes.spinPoints(),
+                            dropRes.energyPoints(),
+                            dropRes.pendingFeatures(),
+                            dropRes.activeBonus(),
+                            dropRes.serverTime()
+                        );
+                    }
+                }
+                return dropRes;
+            }
         );
 
         ResponseEntity.BodyBuilder builder = ResponseEntity.status(result.statusCode());
@@ -131,6 +172,9 @@ public class GameController {
     public ResponseEntity<GameDtos.SpinResponse> spin(
         @AuthenticationPrincipal AuthenticatedUser authUser,
         @RequestHeader(value = "x-idempotency-key", required = false) String idempotencyKey,
+        @RequestHeader(value = "X-Launch-Token", required = false) String launchToken,
+        @RequestHeader(value = "X-Partner-Code", required = false) String partnerCode,
+        @RequestHeader(value = "X-Launch-Gid", required = false) String launchGid,
         @RequestBody(required = false) Map<String, Object> body
     ) {
         IdempotencyService.ExecutionResult<GameDtos.SpinResponse> result = idempotencyService.execute(
@@ -139,7 +183,39 @@ public class GameController {
             idempotencyKey,
             body != null ? body : Map.of(),
             GameDtos.SpinResponse.class,
-            () -> gameService.spinWheel(authUser.userObjectId())
+            () -> {
+                GameDtos.SpinResponse spinRes = gameService.spinWheel(authUser.userObjectId());
+                if (launchToken != null && !launchToken.isBlank()
+                    && partnerCode != null && !partnerCode.isBlank()
+                    && providerWalletBridgeService.hasOperationsConfig(partnerCode)) {
+                    String tranId = (launchGid != null ? launchGid + "-" : "") + spinRes.originRoundId() + "-fs-" + spinRes.featureId();
+                    Long authBal = providerWalletBridgeService.settleOperationsTransfer(
+                        launchToken,
+                        partnerCode,
+                        launchGid,
+                        0L,
+                        spinRes.grossPayoutCents(),
+                        "freespin",
+                        1,
+                        spinRes.originRoundId(),
+                        tranId
+                    );
+                    if (authBal != null) {
+                        return new GameDtos.SpinResponse(
+                            spinRes.featureId(),
+                            spinRes.originRoundId(),
+                            spinRes.outcome(),
+                            spinRes.angleTargetDegrees(),
+                            spinRes.grossPayoutCents(),
+                            spinRes.payoutCapReached(),
+                            authBal,
+                            spinRes.pendingFeatures(),
+                            spinRes.activeBonus()
+                        );
+                    }
+                }
+                return spinRes;
+            }
         );
 
         ResponseEntity.BodyBuilder builder = ResponseEntity.status(result.statusCode());
@@ -212,5 +288,29 @@ public class GameController {
         @RequestParam(required = false) String providerCode
     ) {
         return providerWalletBridgeService.getPlayerProfile(sessionToken, providerCode);
+    }
+
+    @PostMapping("/launch/session")
+    public Map<String, Object> registerLaunchSession(@RequestBody Map<String, Object> launchParams) {
+        return providerWalletBridgeService.registerLaunchSession(launchParams);
+    }
+
+    @PostMapping("/launch/wallet/balance")
+    public Map<String, Object> getOperationsWalletBalance(@RequestBody Map<String, Object> body) {
+        String partnerCode = body.get("partnerCode") != null ? String.valueOf(body.get("partnerCode")) : null;
+        return providerWalletBridgeService.callOperationsWallet("/balance", partnerCode, body);
+    }
+
+    @PostMapping("/launch/wallet/refund")
+    public Map<String, Object> refundOperationsRound(@RequestBody Map<String, Object> body) {
+        String token = body.get("token") != null ? String.valueOf(body.get("token")) : "";
+        String partnerCode = body.get("partnerCode") != null ? String.valueOf(body.get("partnerCode")) : null;
+        String gid = body.get("gid") != null ? String.valueOf(body.get("gid")) : null;
+        long betCents = body.get("betCents") instanceof Number n ? n.longValue() : 0L;
+        String roundId = body.get("roundId") != null ? String.valueOf(body.get("roundId")) : "";
+        Long authBal = providerWalletBridgeService.refundOperationsTransfer(token, partnerCode, gid, betCents, roundId);
+        return authBal != null
+            ? Map.of("refunded", true, "authoritativeBalanceCents", authBal)
+            : Map.of("refunded", true);
     }
 }
