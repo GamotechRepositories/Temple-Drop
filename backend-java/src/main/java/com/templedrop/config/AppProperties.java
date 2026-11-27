@@ -9,11 +9,13 @@ public class AppProperties {
     private String env = "development";
     private String corsOrigin = "http://localhost:5173";
     private boolean cookieSecure = false;
-    private String csrfSecret = "temple-drop-csrf-fallback-secret-2026";
-    private String sessionSecret = "temple_drop_jwt_and_session_secret_32_characters_min!";
+    private String csrfSecret = "";
+    private String sessionSecret = "";
     private boolean serveStatic = true;
-    private String adminUsername = "admin";
-    private String adminPassword = "admin123";
+    private String adminUsername = "";
+    private String adminPassword = "";
+    private String operationsApiUrl = "";
+    private String internalServiceKey = "";
 
     public String getEnv() { return env; }
     public void setEnv(String env) { this.env = env; }
@@ -38,6 +40,12 @@ public class AppProperties {
 
     public String getAdminPassword() { return adminPassword; }
     public void setAdminPassword(String adminPassword) { this.adminPassword = adminPassword; }
+
+    public String getOperationsApiUrl() { return operationsApiUrl; }
+    public void setOperationsApiUrl(String operationsApiUrl) { this.operationsApiUrl = operationsApiUrl; }
+
+    public String getInternalServiceKey() { return internalServiceKey; }
+    public void setInternalServiceKey(String internalServiceKey) { this.internalServiceKey = internalServiceKey; }
 
     public boolean isProduction() {
         return "production".equalsIgnoreCase(env);

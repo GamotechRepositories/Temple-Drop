@@ -3,6 +3,7 @@ package com.templedrop.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
+import com.templedrop.config.AppProperties;
 import com.templedrop.dto.AdminDtos;
 import com.templedrop.exception.ApiException;
 import com.templedrop.model.ProviderConfigDocument;
@@ -25,13 +26,19 @@ import java.util.Optional;
 public class ProviderWalletBridgeService {
     private final ProviderConfigRepository providerConfigRepository;
     private final ObjectMapper objectMapper;
+    private final AppProperties appProperties;
     private final HttpClient httpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(10))
         .build();
 
-    public ProviderWalletBridgeService(ProviderConfigRepository providerConfigRepository, ObjectMapper objectMapper) {
+    public ProviderWalletBridgeService(
+        ProviderConfigRepository providerConfigRepository,
+        ObjectMapper objectMapper,
+        AppProperties appProperties
+    ) {
         this.providerConfigRepository = providerConfigRepository;
         this.objectMapper = objectMapper;
+        this.appProperties = appProperties;
     }
 
     public AdminDtos.PublicProviderConfigResponse getActivePublicConfig() {
@@ -139,8 +146,8 @@ public class ProviderWalletBridgeService {
             return new ProviderGameServerSDK(doc.getProviderApiUrl(), doc.getGameServerApiKey());
         }
 
-        String envUrl = System.getenv("PROVIDER_API_URL");
-        String envKey = System.getenv("GAME_SERVER_API_KEY");
+        String envUrl = appProperties.getOperationsApiUrl();
+        String envKey = appProperties.getInternalServiceKey();
         if (envUrl != null && !envUrl.isBlank() && envKey != null && !envKey.isBlank()) {
             return new ProviderGameServerSDK(envUrl.trim(), envKey.trim());
         }
@@ -179,17 +186,20 @@ public class ProviderWalletBridgeService {
         Optional<ProviderConfigDocument> docOpt = resolveActiveProvider(partnerCode);
         String baseUrl = docOpt.map(ProviderConfigDocument::getProviderApiUrl)
             .filter(u -> u != null && !u.isBlank())
-            .orElse(System.getenv("PROVIDER_API_URL"));
+            .orElse(appProperties.getOperationsApiUrl());
         String internalKey = docOpt.map(ProviderConfigDocument::getGameServerApiKey)
             .filter(k -> k != null && !k.isBlank())
-            .orElse(System.getenv("GAME_SERVER_API_KEY"));
+            .orElse(appProperties.getInternalServiceKey());
 
         if (baseUrl == null || baseUrl.isBlank() || internalKey == null || internalKey.isBlank()) {
             throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "Operations API URL or X-Internal-Key is not configured");
         }
 
         String normalizedBase = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-        String targetUrl = normalizedBase + "/wallet" + (walletSubPath.startsWith("/") ? walletSubPath : "/" + walletSubPath);
+        String walletPrefix = normalizedBase.contains("/api/") || normalizedBase.endsWith("/api/v1")
+            ? normalizedBase + "/wallet"
+            : normalizedBase + "/api/v1/wallet";
+        String targetUrl = walletPrefix + (walletSubPath.startsWith("/") ? walletSubPath : "/" + walletSubPath);
 
         String jsonBody;
         try {
@@ -261,8 +271,8 @@ public class ProviderWalletBridgeService {
                 return true;
             }
         }
-        String envUrl = System.getenv("PROVIDER_API_URL");
-        String envKey = System.getenv("GAME_SERVER_API_KEY");
+        String envUrl = appProperties.getOperationsApiUrl();
+        String envKey = appProperties.getInternalServiceKey();
         return envUrl != null && !envUrl.isBlank() && envKey != null && !envKey.isBlank();
     }
 

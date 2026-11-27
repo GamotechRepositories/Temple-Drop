@@ -145,7 +145,8 @@ class AdminConfigAndPayoutTest {
     void extractsAuthoritativeFloatBalanceInCents() {
         ProviderWalletBridgeService bridge = new ProviderWalletBridgeService(
             mock(ProviderConfigRepository.class),
-            new ObjectMapper()
+            new ObjectMapper(),
+            new com.templedrop.config.AppProperties()
         );
         assertEquals(101500L, bridge.extractAuthoritativeBalanceCents(java.util.Map.of("status", true, "message", 1015.0)));
         assertEquals(99950L, bridge.extractAuthoritativeBalanceCents(java.util.Map.of("status", true, "message", "999.50")));
